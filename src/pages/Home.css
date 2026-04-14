@@ -1,0 +1,170 @@
+.home-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+.home-head .page-title {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.home-iso {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
+}
+.home-date {
+  margin-top: 4px;
+}
+
+.home-hero {
+  margin-bottom: 36px;
+}
+.home-hero-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: 18px;
+  position: relative;
+  z-index: 1;
+}
+.home-hero-name {
+  font-size: 32px;
+  line-height: 1;
+  margin-bottom: 6px;
+}
+.home-hero-meta {
+  font-size: 12px;
+  color: rgba(253, 251, 250, 0.75);
+}
+.home-hero-meta.subtle {
+  color: rgba(253, 251, 250, 0.5);
+  margin-top: 4px;
+}
+.home-hero-right {
+  text-align: right;
+}
+.home-hero-time {
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: 14px;
+}
+
+.home-section-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.home-link {
+  cursor: pointer;
+}
+.home-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.stat .stat-big {
+  font-size: 34px;
+  margin-top: 10px;
+  line-height: 1;
+}
+.stat .stat-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 6px;
+}
+
+.home-hero-link {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+.home-empty {
+  display: block;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  margin-bottom: 36px;
+  background: var(--surface);
+  border: 1px dashed var(--line);
+  border-radius: 20px;
+  padding: 32px 28px;
+  font-family: inherit;
+}
+.home-empty-msg {
+  margin-top: 10px;
+  font-size: 22px;
+  color: var(--taupe-dark);
+}
+
+.home-plan-inactive {
+  margin-bottom: 36px;
+}
+.home-plan-name {
+  font-size: 22px;
+  margin-top: 8px;
+}
+
+.home-reservas {
+  padding: 0;
+  margin-bottom: 36px;
+}
+.home-reserva-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.home-reserva-row:last-child {
+  border-bottom: none;
+}
+.home-reserva-time {
+  font-size: 18px;
+  width: 60px;
+  flex-shrink: 0;
+}
+.home-reserva-body {
+  flex: 1;
+}
+.home-reserva-title {
+  font-size: 15px;
+  line-height: 1.1;
+}
+.home-reserva-meta {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+
+.home-quote {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+.home-quote-text {
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+@media (max-width: 768px) {
+  .home-head {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .home-hero-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+  }
+  .home-hero-right {
+    text-align: left;
+  }
+  .home-stats {
+    grid-template-columns: 1fr;
+  }
+}

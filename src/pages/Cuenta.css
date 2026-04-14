@@ -1,0 +1,216 @@
+.cuenta-head {
+  margin-bottom: 28px;
+}
+.cuenta-head .page-title {
+  margin-top: 8px;
+}
+
+.balance-card {
+  margin-bottom: 24px;
+}
+.balance-amount {
+  font-size: 56px;
+  line-height: 1;
+  margin: 14px 0 18px;
+  position: relative;
+  z-index: 1;
+}
+.plan-name {
+  font-size: 30px;
+  line-height: 1.1;
+  margin: 10px 0 20px;
+}
+
+.plan-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+  position: relative;
+  z-index: 1;
+}
+.plan-date-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(253, 251, 250, 0.85);
+}
+.plan-vencido {
+  color: var(--terracotta);
+  font-weight: 600;
+}
+.plan-vencido-extra {
+  color: var(--terracotta);
+  font-size: 11px;
+  font-weight: 500;
+}
+.balance-status {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.balance-link {
+  color: rgba(253, 251, 250, 0.6);
+}
+
+.cuenta-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+.cuenta-stat-big {
+  font-size: 28px;
+  margin-top: 10px;
+  line-height: 1;
+}
+.cuenta-stat-sub {
+  font-size: 11px;
+  color: var(--ink-mute);
+  margin-top: 6px;
+}
+
+.cuenta-extra {
+  margin-bottom: 36px;
+  background: var(--beige-soft);
+  border-color: var(--beige);
+}
+.cuenta-extra-num {
+  font-size: 38px;
+  color: var(--taupe-dark);
+  margin: 8px 0 4px;
+  line-height: 1;
+}
+
+.cuenta-placeholder {
+  text-align: center;
+  padding: 34px 24px;
+  border-style: dashed;
+}
+
+.cuenta-empty {
+  text-align: center;
+  padding: 36px 24px;
+}
+.cuenta-empty-msg {
+  font-size: 22px;
+  margin: 8px 0 6px;
+  color: var(--ink);
+}
+
+/* Historial de pagos */
+.pagos-list {
+  padding: 0;
+}
+.pago-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.pago-row:last-child {
+  border-bottom: none;
+}
+.pago-date {
+  font-size: 14px;
+  width: 92px;
+  flex-shrink: 0;
+  color: var(--ink);
+}
+.pago-body {
+  flex: 1;
+  min-width: 0;
+}
+.pago-plan {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.pago-monto {
+  font-size: 18px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .plan-name {
+    font-size: 24px;
+  }
+  .pago-row {
+    padding: 16px 18px;
+    gap: 12px;
+  }
+  .pago-date {
+    width: 76px;
+    font-size: 12px;
+  }
+  .pago-monto {
+    font-size: 16px;
+  }
+}
+
+.cuenta-section-head {
+  margin-bottom: 12px;
+  margin-top: 16px;
+}
+.tx-list {
+  padding: 0;
+}
+.tx-row {
+  display: flex;
+  align-items: center;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--line-soft);
+}
+.tx-row:last-child {
+  border-bottom: none;
+}
+.tx-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.tx-icon.payment {
+  background: var(--sage-bg);
+  color: var(--sage);
+}
+.tx-icon.class {
+  background: var(--beige-soft);
+  color: var(--taupe-dark);
+}
+.tx-body {
+  flex: 1;
+  padding: 0 16px;
+}
+.tx-title {
+  font-size: 13px;
+  font-weight: 500;
+}
+.tx-meta {
+  font-size: 10px;
+  color: var(--ink-mute);
+  margin-top: 3px;
+  letter-spacing: 0.3px;
+}
+.tx-amount {
+  font-size: 18px;
+}
+
+@media (max-width: 768px) {
+  .cuenta-stats {
+    grid-template-columns: 1fr;
+  }
+  .balance-amount {
+    font-size: 42px;
+  }
+}

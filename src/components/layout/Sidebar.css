@@ -1,0 +1,128 @@
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  background: var(--ink);
+  color: var(--surface);
+  padding: 32px 0 24px;
+  display: flex;
+  flex-direction: column;
+  z-index: 20;
+}
+
+.sidebar-brand {
+  padding: 0 28px 28px;
+  border-bottom: 1px solid rgba(253, 251, 250, 0.1);
+}
+
+.sidebar-logo {
+  width: 64px;
+  margin-bottom: 4px;
+}
+
+.sidebar-tagline {
+  font-size: 13px;
+  color: rgba(253, 251, 250, 0.75);
+  letter-spacing: 0.5px;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 20px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 28px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+  color: rgba(253, 251, 250, 0.5);
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+
+.sidebar-item:hover {
+  color: rgba(253, 251, 250, 0.85);
+}
+
+.sidebar-item.active {
+  color: var(--surface);
+  background: rgba(253, 251, 250, 0.07);
+  border-left-color: var(--taupe);
+}
+
+.sidebar-badge {
+  background: var(--taupe);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 7px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+.sidebar-footer {
+  margin: 0 16px;
+  padding: 14px 12px;
+  border-top: 1px solid rgba(253, 251, 250, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.15s;
+  min-width: 0;
+}
+.sidebar-footer:hover {
+  background: rgba(253, 251, 250, 0.05);
+}
+
+.sidebar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--taupe);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Italiana', serif;
+  font-size: 18px;
+}
+
+.sidebar-user {
+  flex: 1;
+  min-width: 0;
+}
+.sidebar-user-name {
+  font-size: 12px;
+  color: var(--surface);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sidebar-user-link {
+  font-size: 9px;
+  color: var(--taupe);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 3px;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    display: none;
+  }
+}

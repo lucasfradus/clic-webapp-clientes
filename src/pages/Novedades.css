@@ -1,0 +1,167 @@
+.nov-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 28px;
+}
+.nov-head .page-title {
+  margin-top: 8px;
+}
+
+/* Loading / error */
+.nov-loading,
+.nov-error {
+  text-align: center;
+  padding: 40px 24px;
+}
+.nov-error-title {
+  font-size: 18px;
+  margin: 8px 0 20px;
+  color: var(--ink-soft);
+}
+
+/* Empty state (card oscura) */
+.nov-empty {
+  padding: 48px 40px;
+  min-height: 220px;
+}
+.nov-empty-title {
+  position: relative;
+  z-index: 1;
+  font-size: 26px;
+  margin-top: 12px;
+  line-height: 1.15;
+  max-width: 420px;
+}
+.nov-empty-desc {
+  position: relative;
+  z-index: 1;
+  margin-top: 16px;
+  font-size: 12px;
+  color: rgba(253, 251, 250, 0.6);
+  max-width: 480px;
+  line-height: 1.6;
+}
+
+/* Lista */
+.nov-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.nov-card {
+  padding: 24px 26px;
+}
+
+.nov-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+.nov-card-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+  letter-spacing: -0.2px;
+  margin: 0;
+  flex: 1;
+}
+.nov-card-head .tag-label {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+
+.nov-card-image {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin: 4px 0 16px;
+  display: block;
+  background: var(--line-soft);
+}
+
+/* Prose del contenido sanitizado */
+.nov-contenido {
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+.nov-contenido p {
+  margin-bottom: 10px;
+}
+.nov-contenido p:last-child {
+  margin-bottom: 0;
+}
+.nov-contenido strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.nov-contenido em {
+  font-style: italic;
+}
+.nov-contenido h2 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 18px 0 8px;
+  letter-spacing: -0.2px;
+}
+.nov-contenido h3 {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 14px 0 6px;
+  letter-spacing: 0.1px;
+}
+.nov-contenido ul,
+.nov-contenido ol {
+  margin: 6px 0 12px;
+  padding-left: 22px;
+}
+.nov-contenido li {
+  margin-bottom: 6px;
+}
+.nov-contenido li::marker {
+  color: var(--taupe);
+}
+.nov-contenido a {
+  color: var(--taupe-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.nov-contenido a:hover {
+  color: var(--ink);
+}
+.nov-contenido br + br {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nov-empty {
+    padding: 36px 28px;
+  }
+  .nov-empty-title {
+    font-size: 22px;
+  }
+  .nov-card {
+    padding: 20px 20px;
+  }
+  .nov-card-head {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .nov-card-title {
+    font-size: 17px;
+  }
+  .nov-card-image {
+    max-height: 220px;
+  }
+}
