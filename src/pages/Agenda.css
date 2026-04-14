@@ -207,8 +207,15 @@
   font-family: inherit;
   cursor: pointer;
 }
-.class-row:hover:not(.booked) {
+.class-row:hover:not(.booked):not(.past) {
   background: var(--beige-soft);
+}
+.class-row.past {
+  opacity: 0.5;
+  cursor: default;
+}
+.class-row.past:hover {
+  background: transparent;
 }
 
 /* Modal */

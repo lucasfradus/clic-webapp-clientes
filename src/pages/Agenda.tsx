@@ -150,8 +150,13 @@ export default function Agenda() {
     setSalonDropdown(false);
   }
 
+  function isPast(c: Clase) {
+    return new Date(c.inicio).getTime() <= Date.now();
+  }
+
   function statusBadge(c: Clase) {
     if (c.yaReservada) return <span className="badge tuya">Reservada</span>;
+    if (isPast(c)) return <span className="badge fu">Ya pasó</span>;
     if (c.motivoNoDisponible === 'FUERA_DE_VENTANA')
       return <span className="badge fu">No disponible</span>;
     if (c.motivoNoDisponible === 'SIN_ACCESOS')
@@ -168,6 +173,10 @@ export default function Agenda() {
   }
 
   function onClaseClick(c: Clase) {
+    if (!c.yaReservada && isPast(c)) {
+      toast.error('Esta clase ya comenzó, no podés reservarla');
+      return;
+    }
     if (c.yaReservada) {
       const tol = sedeHome?.toleranciaCancelacion ?? 2;
       if (activa && activa.cancelacionesUsadas >= activa.cancelaciones) {
@@ -417,7 +426,11 @@ export default function Agenda() {
           {clasesDelDia.map((c) => (
             <button
               key={c.id}
-              className={'class-row' + (c.yaReservada ? ' booked' : '')}
+              className={
+                'class-row' +
+                (c.yaReservada ? ' booked' : '') +
+                (!c.yaReservada && isPast(c) ? ' past' : '')
+              }
               onClick={() => onClaseClick(c)}
             >
               <div className="class-time">
