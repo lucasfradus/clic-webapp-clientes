@@ -13,6 +13,6 @@ export default defineConfig({
     },
   },
   preview: {
-    allowedHosts: ['.up.railway.app'],
+    allowedHosts: ['.up.railway.app', 'clientes.clicpilates.com'],
   },
 });
