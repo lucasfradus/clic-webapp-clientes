@@ -151,12 +151,15 @@ export default function Agenda() {
   }
 
   function isPast(c: Clase) {
-    return new Date(c.inicio).getTime() <= Date.now();
+    return (
+      c.motivoNoDisponible === 'YA_COMENZO' ||
+      new Date(c.inicio).getTime() <= Date.now()
+    );
   }
 
   function statusBadge(c: Clase) {
     if (c.yaReservada) return <span className="badge tuya">Reservada</span>;
-    if (isPast(c)) return <span className="badge fu">Ya pasó</span>;
+    if (isPast(c)) return <span className="badge fu">Ya comenzó</span>;
     if (c.motivoNoDisponible === 'FUERA_DE_VENTANA')
       return <span className="badge fu">No disponible</span>;
     if (c.motivoNoDisponible === 'SIN_ACCESOS')

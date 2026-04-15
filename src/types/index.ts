@@ -95,6 +95,7 @@ export type MotivoNoDisponible =
   | 'LLENO'
   | 'YA_RESERVADA'
   | 'SIN_ACCESOS'
+  | 'YA_COMENZO'
   | null;
 
 export interface Clase {
