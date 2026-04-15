@@ -16,7 +16,7 @@ export interface Sede {
   nombre: string;
   esBase?: boolean;
   direccion?: string;
-  telefono?: string | null;
+  whatsappUrl?: string | null;
   toleranciaCancelacion?: number;
 }
 

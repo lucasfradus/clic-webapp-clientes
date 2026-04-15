@@ -65,10 +65,7 @@ export default function Perfil() {
 
   const initial = (perfil?.nombre ?? '?').charAt(0).toUpperCase();
 
-  const whatsappHref =
-    sede?.telefono
-      ? `https://wa.me/${sede.telefono.replace(/[^\d]/g, '')}`
-      : null;
+  const whatsappHref = sede?.whatsappUrl ?? null;
 
   const menu = [
     { label: 'Datos personales', icon: '☺', to: '/perfil/editar' },
