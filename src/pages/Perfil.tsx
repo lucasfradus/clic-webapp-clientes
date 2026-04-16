@@ -106,7 +106,7 @@ export default function Perfil() {
           <div className="perfil-stats">
             <div>
               <div className="perfil-stat-num italiana">{asistidos.length}</div>
-              <div className="tag-label">Clases</div>
+              <div className="tag-label">Clases usadas</div>
             </div>
             <div>
               <div className="perfil-stat-num italiana">

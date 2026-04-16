@@ -14,6 +14,7 @@ export default function Login() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   if (token && perfil) {
@@ -70,13 +71,23 @@ export default function Login() {
           </label>
           <label className="login-field">
             <span className="tag-label">Contraseña</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoComplete="current-password"
-              required
-            />
+            <div className="login-pw-wrap">
+              <input
+                type={showPw ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+              <button
+                type="button"
+                className="login-pw-toggle"
+                onClick={() => setShowPw((v) => !v)}
+                aria-label={showPw ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+              >
+                {showPw ? '🙈' : '👁'}
+              </button>
+            </div>
           </label>
 
           {error && <div className="login-error">{error}</div>}
