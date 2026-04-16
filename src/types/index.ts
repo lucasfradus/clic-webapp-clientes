@@ -18,6 +18,7 @@ export interface Sede {
   direccion?: string;
   telefono?: string | null;
   toleranciaCancelacion?: number;
+  antelacionReservaMinutos?: number;
 }
 
 export type SexoValue = 'MASCULINO' | 'FEMENINO' | 'OTRO';

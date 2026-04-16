@@ -211,6 +211,18 @@ export default function Agenda() {
       toast.error('No te quedan clases disponibles con tu plan actual');
       return;
     }
+
+    // Antelación mínima para reservar (default 30 min)
+    const antelacion = sedeHome?.antelacionReservaMinutos ?? 30;
+    const minutosRestantes =
+      (new Date(c.inicio).getTime() - Date.now()) / 60_000;
+    if (minutosRestantes <= antelacion) {
+      toast.error(
+        `Esta clase comienza en menos de ${antelacion} minutos. Las reservas cierran ${antelacion} minutos antes del inicio.`
+      );
+      return;
+    }
+
     if (c.motivoNoDisponible === 'FUERA_DE_VENTANA') {
       toast.error('Esta clase aún no está disponible para reservar');
       return;
