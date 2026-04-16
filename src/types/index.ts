@@ -155,17 +155,46 @@ export interface Turno {
   cupo: number;
 }
 
-export interface ConsentimientoTexto {
-  version: string;
-  titulo: string;
-  texto: string;
+// GET /consentimiento/texto
+export type ConsentimientoTexto =
+  | { requerido: false }
+  | { requerido: true; id: number; version: string; titulo: string; texto: string };
+
+// GET /consentimiento/firmado
+export type ConsentimientoFirmado =
+  | { requerido: false; firmado: false }
+  | { requerido: true; firmado: false; versionRequerida: string }
+  | { requerido: true; firmado: true; fecha: string; version: string; firma: string; ip: string };
+
+// POST /consentimiento sub-objects
+export interface ContactoEmergencia {
+  nombre1: string; telefono1: string; vinculo1: string; telefonoAlt1: string;
+  nombre2: string; telefono2: string; vinculo2: string; telefonoAlt2: string;
 }
 
-export interface ConsentimientoFirmado {
-  fecha: string;
-  version: string;
+export interface DatosSalud {
+  cardiacas: boolean;
+  oseas: boolean;
+  tiroides: boolean;
+  respiratorias: boolean;
+  cirugias: boolean;
+  musculares: boolean;
+  hipertension: boolean;
+  intoleranciaCalor: boolean;
+  embarazo: boolean;
+  embarazoSemanas: number | null;
+  diabetes: boolean;
+  mareos: boolean;
+  otra: boolean;
+  detalle: string;
+}
+
+export interface FirmarConsentimientoBody {
   firma: string;
-  ip: string;
+  version: string;
+  consentimientoId: number;
+  emergencia: ContactoEmergencia;
+  salud: DatosSalud;
 }
 
 export interface Novedad {

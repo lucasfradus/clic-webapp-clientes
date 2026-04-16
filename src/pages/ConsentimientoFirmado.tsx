@@ -34,6 +34,27 @@ export default function ConsentimientoFirmado() {
           <div className="tag-label">Cargando…</div>
         ) : !data ? (
           <div className="tag-label">Sin datos</div>
+        ) : !data.requerido ? (
+          <div className="tag-label" style={{ textAlign: 'center', padding: 20 }}>
+            Esta sede no requiere consentimiento informado.
+          </div>
+        ) : !data.firmado ? (
+          <>
+            <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+              <span className="badge lw">Pendiente</span>
+              <span className="tag-label">
+                Versión requerida: {data.versionRequerida}
+              </span>
+            </div>
+            <div style={{ marginTop: 18 }}>
+              <button
+                className="btn-taupe"
+                onClick={() => navigate('/consentimiento')}
+              >
+                Firmar ahora
+              </button>
+            </div>
+          </>
         ) : (
           <>
             <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>

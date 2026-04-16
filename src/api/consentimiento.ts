@@ -1,14 +1,18 @@
 import { apiFetch } from './client';
-import type { ConsentimientoTexto, ConsentimientoFirmado } from '../types';
+import type {
+  ConsentimientoTexto,
+  ConsentimientoFirmado,
+  FirmarConsentimientoBody,
+} from '../types';
 
 export function getConsentimientoTexto() {
-  return apiFetch<ConsentimientoTexto>('/consentimiento/texto', { auth: false });
+  return apiFetch<ConsentimientoTexto>('/consentimiento/texto');
 }
 
-export function firmarConsentimiento(firma: string, version: string) {
+export function firmarConsentimiento(body: FirmarConsentimientoBody) {
   return apiFetch<void>('/consentimiento', {
     method: 'POST',
-    body: { firma, version },
+    body,
   });
 }
 
