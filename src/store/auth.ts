@@ -28,6 +28,11 @@ export const useAuth = create<AuthState>((set, get) => ({
       setToken(res.token);
       set({ token: res.token, user: res.user });
       await get().fetchPerfil();
+    } catch (err) {
+      // Si fetchPerfil falla, limpiar estado para no quedar en "Cargando…"
+      clearToken();
+      set({ token: null, user: null, perfil: null });
+      throw err;
     } finally {
       set({ loading: false });
     }
@@ -49,7 +54,8 @@ export const useAuth = create<AuthState>((set, get) => ({
     try {
       await get().fetchPerfil();
     } catch {
-      // token invalido → ya se limpia en apiFetch 401
+      // Si falla (401, 500, etc.) limpiar estado para no quedar en "Cargando…"
+      get().logout();
     }
   },
 }));

@@ -74,6 +74,40 @@
 .consent-text p {
   margin-bottom: 10px;
 }
+.consent-text p:last-child {
+  margin-bottom: 0;
+}
+.consent-text strong {
+  font-weight: 600;
+  color: var(--ink);
+}
+.consent-text em {
+  font-style: italic;
+}
+.consent-text h2, .consent-text h3 {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 14px 0 6px;
+}
+.consent-text ul, .consent-text ol {
+  margin: 6px 0 12px;
+  padding-left: 22px;
+}
+.consent-text li {
+  margin-bottom: 6px;
+}
+.consent-text li::marker {
+  color: var(--taupe);
+}
+.consent-text a {
+  color: var(--taupe-dark);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.consent-text a:hover {
+  color: var(--ink);
+}
 
 .consent-sign {
   margin-top: 28px;

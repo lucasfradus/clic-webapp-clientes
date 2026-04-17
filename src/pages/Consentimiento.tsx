@@ -64,6 +64,13 @@ export default function Consentimiento() {
     getConsentimientoTexto()
       .then((res) => {
         if (!res.requerido) {
+          // Sede sin consentimiento: marcar como firmado para romper el loop
+          // de redirect entre / (exige consent) y /consentimiento (requerido: false)
+          useAuth.setState((s) =>
+            s.perfil
+              ? { perfil: { ...s.perfil, consentimientoFirmado: true } }
+              : {}
+          );
           navigate('/', { replace: true });
           return;
         }
@@ -89,6 +96,10 @@ export default function Consentimiento() {
   async function submit() {
     if (!data || !sigRef.current || sigRef.current.isEmpty()) {
       toast.error('Por favor firmá antes de continuar');
+      return;
+    }
+    if (!emergencia.nombre1.trim() || !emergencia.telefono1.trim()) {
+      toast.error('Completá al menos el nombre y teléfono del contacto de emergencia 1');
       return;
     }
     setSubmitting(true);
@@ -313,11 +324,10 @@ export default function Consentimiento() {
         {/* Texto del consentimiento */}
         <section className="consent-section">
           <div className="consent-section-title">Consentimiento informado</div>
-          <div className="consent-text">
-            {data.texto.split('\n').map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-          </div>
+          <div
+            className="consent-text"
+            dangerouslySetInnerHTML={{ __html: data.texto }}
+          />
         </section>
 
         {/* Firma */}
