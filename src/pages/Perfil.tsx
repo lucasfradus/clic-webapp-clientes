@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Watermark from '../components/brand/Watermark';
-import isoTaupe from '../assets/clic_iso_taupe_transparent.png';
 import { useAuth } from '../store/auth';
+import { useBrand } from '../brand/context';
 import { getTurnos } from '../api/turnos';
 import { getSuscripciones } from '../api/suscripciones';
 import { getSede } from '../api/perfil';
@@ -17,6 +17,7 @@ const MESES = ['E', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'];
 export default function Perfil() {
   const perfil = useAuth((s) => s.perfil);
   const logout = useAuth((s) => s.logout);
+  const brand = useBrand();
   const navigate = useNavigate();
   const [historial, setHistorial] = useState<Turno[]>([]);
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
@@ -121,8 +122,8 @@ export default function Perfil() {
           </div>
 
           <div className="perfil-brand">
-            <img src={isoTaupe} alt="" className="perfil-brand-iso" />
-            <span className="tag-label">CLIC studio pilates</span>
+            <img src={brand.logos.isoAccent} alt="" className="perfil-brand-iso" />
+            <span className="tag-label">{brand.text.fullName}</span>
           </div>
         </div>
 

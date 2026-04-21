@@ -1,8 +1,8 @@
 import { useEffect, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Watermark from '../components/brand/Watermark';
-import isoBlack from '../assets/clic_iso_black_transparent.png';
 import { useAuth } from '../store/auth';
+import { useBrand } from '../brand/context';
 import { getSuscripciones } from '../api/suscripciones';
 import { getTurnos } from '../api/turnos';
 import type { Suscripcion, Turno } from '../types';
@@ -19,6 +19,7 @@ import './Home.css';
 export default function Home() {
   const perfil = useAuth((s) => s.perfil);
   const navigate = useNavigate();
+  const brand = useBrand();
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +63,7 @@ export default function Home() {
         <div>
           <div className="tag-label">{greeting()}</div>
           <h1 className="page-title">
-            <img src={isoBlack} alt="" className="home-iso" />
+            <img src={brand.logos.isoBlack} alt="" className="home-iso" />
             {perfil?.nombre ?? ''}
           </h1>
         </div>

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { ApiError } from '../api/client';
-import logoBlack from '../assets/clic_logo_black_transparent.png';
+import { useBrand } from '../brand/context';
 import './Login.css';
 
 export default function Login() {
@@ -16,6 +16,7 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const brand = useBrand();
 
   if (token && perfil) {
     return (
@@ -52,11 +53,11 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        <img src={logoBlack} alt="CLIC" className="login-logo" />
-        <div className="italiana login-tagline">studio pilates</div>
+        <img src={brand.logos.logoBlack} alt={brand.text.fullName} className="login-logo" />
+        <div className="italiana login-tagline">{brand.text.tagline}</div>
 
-        <h1 className="page-title login-title">Bienvenida</h1>
-        <div className="tag-label">Tu espacio de práctica</div>
+        <h1 className="page-title login-title">{brand.text.loginWelcome}</h1>
+        <div className="tag-label">{brand.text.loginSubtitle}</div>
 
         <form onSubmit={onSubmit} className="login-form">
           <label className="login-field">
