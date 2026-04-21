@@ -17,6 +17,9 @@ export function BrandProvider({ children }: { children: ReactNode }) {
     injectThemeColors(activeBrand.colors);
     injectThemeFonts(activeBrand.fonts);
 
+    // Brand attribute for CSS overrides
+    document.documentElement.setAttribute('data-brand', activeBrand.id);
+
     // Inject brand fonts via dynamic <link> tag
     const existing = document.querySelector('link[data-brand-fonts]');
     if (existing) existing.remove();

@@ -109,6 +109,18 @@ img {
   pointer-events: none;
 }
 
+/* ---- CLIC FIT dark theme overrides ---- */
+[data-brand="fit"] .card-dark {
+  background: var(--surface);
+}
+[data-brand="fit"] .card-dark::before {
+  background: radial-gradient(circle, rgba(251, 250, 63, 0.08), transparent 65%);
+}
+[data-brand="fit"] .italiana {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 /* Animación fade-in página */
 .page {
   animation: fadeIn 0.3s ease;
