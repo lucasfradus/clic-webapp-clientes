@@ -1,5 +1,6 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api/v1';
-const TOKEN_KEY = 'clic_token';
+const brandId = import.meta.env.VITE_BRAND || 'clic';
+const TOKEN_KEY = `${brandId}_token`;
 
 export class ApiError extends Error {
   status: number;
