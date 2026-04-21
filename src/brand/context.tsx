@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import type { BrandConfig } from './types';
 import clic from './theme-clic';
 import fit from './theme-fit';
-import { injectThemeColors } from './inject-theme';
+import { injectThemeColors, injectThemeFonts } from './inject-theme';
 
 const themes: Record<string, BrandConfig> = { clic, fit };
 const brandId = (import.meta.env.VITE_BRAND as string) || 'clic';
@@ -13,8 +13,9 @@ const BrandContext = createContext<BrandConfig>(activeBrand);
 
 export function BrandProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
-    // Inject CSS color variables
+    // Inject CSS color and font variables
     injectThemeColors(activeBrand.colors);
+    injectThemeFonts(activeBrand.fonts);
 
     // Inject brand fonts via dynamic <link> tag
     const existing = document.querySelector('link[data-brand-fonts]');

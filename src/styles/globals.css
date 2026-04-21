@@ -11,7 +11,7 @@ body,
 }
 
 body {
-  font-family: 'Poppins', -apple-system, sans-serif;
+  font-family: var(--font-body, 'Poppins', -apple-system, sans-serif);
   background: var(--bg);
   color: var(--ink);
   font-size: 13px;
@@ -43,7 +43,7 @@ img {
 }
 
 .page-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-display, sans-serif);
   font-size: 34px;
   font-weight: 300;
   letter-spacing: -0.5px;
@@ -52,7 +52,7 @@ img {
 }
 
 .italiana {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-accent, sans-serif);
   font-weight: 300;
   letter-spacing: -0.2px;
 }
@@ -151,7 +151,7 @@ img {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Italiana', serif;
+  font-family: var(--font-accent, serif);
   font-size: 16px;
 }
 

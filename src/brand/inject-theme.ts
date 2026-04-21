@@ -1,5 +1,12 @@
 // src/brand/inject-theme.ts
-import type { BrandColors } from './types';
+import type { BrandColors, BrandFonts } from './types';
+
+export function injectThemeFonts(fonts: BrandFonts) {
+  const root = document.documentElement;
+  root.style.setProperty('--font-body', fonts.body);
+  root.style.setProperty('--font-display', fonts.display);
+  root.style.setProperty('--font-accent', fonts.accent);
+}
 
 export function injectThemeColors(colors: BrandColors) {
   const root = document.documentElement;
