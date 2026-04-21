@@ -201,7 +201,7 @@ export default function Home() {
 
       {!loading && !active && !fallback && reservas.length === 0 && (
         <div className="card home-quote">
-          <Watermark color="taupe" size={32} inline />
+          <Watermark color="accent" size={32} inline />
           <div>
             <div className="italiana home-quote-text">
               Tu pilates empieza acá.

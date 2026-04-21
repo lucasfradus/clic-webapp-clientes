@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
-import logoWhite from '../../assets/clic_logo_white_transparent.png';
 import { useAuth } from '../../store/auth';
+import { useBrand } from '../../brand/context';
 import './Sidebar.css';
 
 const navItems = [
@@ -13,6 +13,7 @@ const navItems = [
 
 export default function Sidebar() {
   const perfil = useAuth((s) => s.perfil);
+  const brand = useBrand();
   const initial = (perfil?.nombre ?? '?').charAt(0).toUpperCase();
   const fullName = perfil
     ? `${perfil.nombre} ${perfil.apellido}`.trim()
@@ -21,8 +22,8 @@ export default function Sidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <img src={logoWhite} alt="CLIC" className="sidebar-logo" />
-        <span className="sidebar-tagline italiana">studio pilates</span>
+        <img src={brand.logos.logoWhite} alt={brand.text.fullName} className="sidebar-logo" />
+        <span className="sidebar-tagline italiana">{brand.text.tagline}</span>
       </div>
 
       <nav className="sidebar-nav">

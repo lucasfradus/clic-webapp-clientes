@@ -71,7 +71,7 @@ export default function Cuenta() {
           {/* Plan card */}
           <div className="card-dark balance-card">
             <Watermark
-              color="taupe"
+              color="accent"
               size={26}
               opacity={0.9}
               position={{ top: 26, right: 28 }}

@@ -1,8 +1,6 @@
-import isoWhite from '../../assets/clic_iso_white_transparent.png';
-import isoBlack from '../../assets/clic_iso_black_transparent.png';
-import isoTaupe from '../../assets/clic_iso_taupe_transparent.png';
+import { useBrand } from '../../brand/context';
 
-type Color = 'white' | 'black' | 'taupe';
+type Color = 'white' | 'black' | 'accent';
 
 interface Props {
   color?: Color;
@@ -12,12 +10,6 @@ interface Props {
   inline?: boolean;
 }
 
-const srcMap: Record<Color, string> = {
-  white: isoWhite,
-  black: isoBlack,
-  taupe: isoTaupe,
-};
-
 export default function Watermark({
   color = 'white',
   size = 180,
@@ -25,6 +17,13 @@ export default function Watermark({
   position = { bottom: -24, right: -24 },
   inline = false,
 }: Props) {
+  const { logos } = useBrand();
+  const srcMap: Record<Color, string> = {
+    white: logos.isoWhite,
+    black: logos.isoBlack,
+    accent: logos.isoAccent,
+  };
+
   if (inline) {
     return (
       <img

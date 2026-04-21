@@ -87,7 +87,7 @@ export default function Perfil() {
       <div className="perfil-grid">
         <div className="card-dark perfil-hero">
           <Watermark
-            color="taupe"
+            color="accent"
             size={28}
             opacity={0.9}
             position={{ top: 24, right: 24 }}
