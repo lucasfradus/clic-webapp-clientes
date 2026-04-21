@@ -109,12 +109,9 @@ img {
   pointer-events: none;
 }
 
-/* ---- CLIC FIT dark theme overrides ---- */
-[data-brand="fit"] .card-dark {
-  background: var(--surface);
-}
+/* ---- CLIC FIT overrides ---- */
 [data-brand="fit"] .card-dark::before {
-  background: radial-gradient(circle, rgba(251, 250, 63, 0.08), transparent 65%);
+  background: radial-gradient(circle, rgba(251, 220, 50, 0.12), transparent 65%);
 }
 [data-brand="fit"] .italiana {
   text-transform: uppercase;
