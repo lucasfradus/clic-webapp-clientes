@@ -390,13 +390,9 @@
 
 [data-brand="fit"] .week-day.active {
   background: var(--accent);
-  color: var(--bg);
+  color: var(--ink);
   border-color: var(--accent);
 }
 [data-brand="fit"] .week-day.active .week-day-letter {
-  color: rgba(10, 10, 10, 0.6);
-}
-[data-brand="fit"] .class-row.booked {
-  background: var(--surface);
-  color: var(--ink);
+  color: rgba(31, 31, 31, 0.6);
 }

@@ -44,10 +44,6 @@
   background: var(--ink);
   color: var(--surface);
 }
-[data-brand="fit"] .toast-info {
-  background: var(--surface);
-  color: var(--ink);
-}
 @media (max-width: 768px) {
   .toaster {
     left: 16px;

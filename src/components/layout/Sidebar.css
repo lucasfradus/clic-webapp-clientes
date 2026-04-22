@@ -126,7 +126,3 @@
     display: none;
   }
 }
-
-[data-brand="fit"] .sidebar {
-  background: var(--surface);
-}
