@@ -22,17 +22,24 @@ export default function Home() {
   const brand = useBrand();
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [turnos, setTurnos] = useState<Turno[]>([]);
+  const [historial, setHistorial] = useState<Turno[]>([]);
+  const [cancelados, setCancelados] = useState<Turno[]>([]);
+  const [historialTab, setHistorialTab] = useState<'asistencias' | 'ausencias' | 'canceladas'>('asistencias');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [subs, t] = await Promise.all([
+      const [subs, t, hist, canc] = await Promise.all([
         getSuscripciones(),
         getTurnos('proximos'),
+        getTurnos('historial'),
+        getTurnos('cancelados'),
       ]);
       setSuscripciones(subs);
       setTurnos(t);
+      setHistorial(hist);
+      setCancelados(canc);
     } catch (err) {
       if (err instanceof ApiError) toast.error(err.message);
     } finally {
@@ -56,6 +63,13 @@ export default function Home() {
   const reservas = turnos
     .filter((t) => t.estado === 'CONFIRMADA')
     .slice(0, 5);
+  const historialItems = historialTab === 'canceladas'
+    ? cancelados
+    : historial.filter((t) =>
+        historialTab === 'asistencias'
+          ? t.estado === 'ASISTIO'
+          : t.estado === 'AUSENTE'
+      );
 
   return (
     <div className="page home">
@@ -199,6 +213,59 @@ export default function Home() {
           </div>
         </>
       )}
+
+      {/* Historial */}
+      <div className="home-section-head">
+        <div className="tag-label">Historial</div>
+      </div>
+      <div className="card home-reservas">
+        <div className="home-tabs">
+          <button
+            className={`home-tab${historialTab === 'asistencias' ? ' active' : ''}`}
+            onClick={() => setHistorialTab('asistencias')}
+          >
+            Asistencias
+          </button>
+          <button
+            className={`home-tab${historialTab === 'ausencias' ? ' active' : ''}`}
+            onClick={() => setHistorialTab('ausencias')}
+          >
+            Ausencias
+          </button>
+          <button
+            className={`home-tab${historialTab === 'canceladas' ? ' active' : ''}`}
+            onClick={() => setHistorialTab('canceladas')}
+          >
+            Canceladas
+          </button>
+        </div>
+        {historialItems.length === 0 ? (
+          <div className="home-historial-empty">
+            <span className="tag-label">Sin registros</span>
+          </div>
+        ) : (
+          historialItems.map((r) => (
+            <div key={r.reservaId} className="home-reserva-row">
+              <div className="home-reserva-time italiana">
+                {formatTime(r.inicio)}
+              </div>
+              <div className="home-reserva-body">
+                <div className="home-reserva-title italiana">
+                  {r.actividad}
+                </div>
+                <div className="home-reserva-meta">
+                  {formatDate(r.inicio)}
+                  {r.instructor ? ' · ' + r.instructor : ''}
+                </div>
+              </div>
+              {r.estado === 'ASISTIO' && <span className="badge ok">Asistió</span>}
+              {r.estado === 'AUSENTE' && <span className="badge lw">Ausente</span>}
+              {r.estado === 'CANCELADA_ALUMNO' && <span className="badge fu">Canceló alumno</span>}
+              {r.estado === 'CANCELADA_SEDE' && <span className="badge lw">Canceló sede</span>}
+            </div>
+          ))
+        )}
+      </div>
 
       {!loading && !active && !fallback && reservas.length === 0 && (
         <div className="card home-quote">
