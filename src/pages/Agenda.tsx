@@ -165,14 +165,10 @@ export default function Agenda() {
     if (c.motivoNoDisponible === 'SIN_ACCESOS')
       return <span className="badge lw">Sin accesos</span>;
     const libres = c.cupo - c.reservas;
-    if (libres <= 0) return <span className="badge fu">Lleno</span>;
-    if (libres <= 2)
-      return (
-        <span className="badge lw">
-          {libres} libre{libres === 1 ? '' : 's'}
-        </span>
-      );
-    return <span className="badge ok">{libres} libres</span>;
+    if (libres <= 0) return <span className="badge fu">Sin disponibilidad</span>;
+    if (libres <= 3)
+      return <span className="badge lw">Baja disponibilidad</span>;
+    return <span className="badge ok">Disponible</span>;
   }
 
   function onClaseClick(c: Clase) {
