@@ -215,6 +215,7 @@ export default function Home() {
       )}
 
       {/* Historial */}
+      {(historial.length > 0 || cancelados.length > 0) && (<>
       <div className="home-section-head">
         <div className="tag-label">Historial</div>
       </div>
@@ -266,6 +267,7 @@ export default function Home() {
           ))
         )}
       </div>
+      </>)}
 
       {!loading && !active && !fallback && reservas.length === 0 && (
         <div className="card home-quote">

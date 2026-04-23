@@ -201,4 +201,11 @@
   .home-stats {
     grid-template-columns: 1fr;
   }
+  .home-tabs {
+    gap: 4px;
+  }
+  .home-tab {
+    padding: 6px 12px;
+    font-size: 10px;
+  }
 }
