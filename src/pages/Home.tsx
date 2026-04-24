@@ -24,7 +24,6 @@ export default function Home() {
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [historial, setHistorial] = useState<Turno[]>([]);
   const [cancelados, setCancelados] = useState<Turno[]>([]);
-  const [historialTab, setHistorialTab] = useState<'asistencias' | 'ausencias' | 'canceladas'>('asistencias');
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
@@ -63,13 +62,9 @@ export default function Home() {
   const reservas = turnos
     .filter((t) => t.estado === 'CONFIRMADA')
     .slice(0, 5);
-  const historialItems = historialTab === 'canceladas'
-    ? cancelados
-    : historial.filter((t) =>
-        historialTab === 'asistencias'
-          ? t.estado === 'ASISTIO'
-          : t.estado === 'AUSENTE'
-      );
+  const historialItems = [...historial, ...cancelados]
+    .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
+    .slice(0, 10);
 
   return (
     <div className="page home">
@@ -220,32 +215,7 @@ export default function Home() {
         <div className="tag-label">Historial</div>
       </div>
       <div className="card home-reservas">
-        <div className="home-tabs">
-          <button
-            className={`home-tab${historialTab === 'asistencias' ? ' active' : ''}`}
-            onClick={() => setHistorialTab('asistencias')}
-          >
-            Asistencias
-          </button>
-          <button
-            className={`home-tab${historialTab === 'ausencias' ? ' active' : ''}`}
-            onClick={() => setHistorialTab('ausencias')}
-          >
-            Ausencias
-          </button>
-          <button
-            className={`home-tab${historialTab === 'canceladas' ? ' active' : ''}`}
-            onClick={() => setHistorialTab('canceladas')}
-          >
-            Canceladas
-          </button>
-        </div>
-        {historialItems.length === 0 ? (
-          <div className="home-historial-empty">
-            <span className="tag-label">Sin registros</span>
-          </div>
-        ) : (
-          historialItems.map((r) => (
+        {historialItems.map((r) => (
             <div key={r.reservaId} className="home-reserva-row">
               <div className="home-reserva-time italiana">
                 {formatTime(r.inicio)}
@@ -264,8 +234,7 @@ export default function Home() {
               {r.estado === 'CANCELADA_ALUMNO' && <span className="badge fu">Canceló alumno</span>}
               {r.estado === 'CANCELADA_SEDE' && <span className="badge lw">Canceló sede</span>}
             </div>
-          ))
-        )}
+          ))}
       </div>
       </>)}
 
