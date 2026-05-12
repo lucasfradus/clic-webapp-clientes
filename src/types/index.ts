@@ -42,6 +42,7 @@ export interface UltimoPago {
   id: number;
   fechaPago: string;
   plan: string;
+  sedeId: number;
   vigenciaHasta: string | null;
   estado: 'ACREDITADO' | 'PAGADO';
   monto: number;
@@ -120,9 +121,11 @@ export interface Clase {
 export interface SedeAccesible {
   id: number;
   nombre: string;
-  direccion: string;
-  ciudad: string;
-  telefono: string;
+  direccion: string | null;
+  ciudad: string | null;
+  whatsappUrl: string | null;
+  toleranciaCancelacionHoras: number;
+  antelacionReservaMinutos: number;
   esHome: boolean;
 }
 

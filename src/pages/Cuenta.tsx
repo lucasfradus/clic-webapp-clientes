@@ -1,32 +1,33 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Watermark from '../components/brand/Watermark';
 import { getSuscripciones } from '../api/suscripciones';
 import { useAuth } from '../store/auth';
-import type { Suscripcion, EstadoSuscripcionActiva } from '../types';
+import { useSelectedSede } from '../store/sede';
+import type { Suscripcion, SuscripcionEstado } from '../types';
 import { formatShortDate, daysFromNow, formatARS } from '../lib/date';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
 import './Cuenta.css';
 
-const estadoLabel: Record<EstadoSuscripcionActiva, string> = {
+const estadoLabel: Record<SuscripcionEstado, string> = {
   ACTIVA: 'Activo',
   VENCIDA: 'Vencido',
   CANCELADA: 'Cancelado',
-  EN_TOLERANCIA: 'En tolerancia',
   PAUSADA: 'Pausado',
-  PENDIENTE_PAGO: 'Pago pendiente',
+  CAMBIO_PLAN: 'Cambio de plan',
 };
 
-function badgeClass(estado: EstadoSuscripcionActiva): string {
+function badgeClass(estado: SuscripcionEstado): string {
   if (estado === 'ACTIVA') return 'badge ok';
   if (estado === 'VENCIDA') return 'badge lw';
-  if (estado === 'EN_TOLERANCIA') return 'badge lw';
   return 'badge fu';
 }
 
 export default function Cuenta() {
   const perfil = useAuth((s) => s.perfil);
   const fetchPerfil = useAuth((s) => s.fetchPerfil);
+  const selectedSede = useSelectedSede();
+  const sedeId = selectedSede?.id;
 
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +39,31 @@ export default function Cuenta() {
       .finally(() => setLoading(false));
   }, [fetchPerfil]);
 
-  const stats = suscripciones.find((s) => s.estado === 'ACTIVA');
-  const plan = perfil?.suscripcionActiva ?? null;
-  const pagos = perfil?.ultimosPagos ?? [];
+  // Sub que aplica a la sede seleccionada (local > multisede > primera).
+  const stats = useMemo(() => {
+    const activas = suscripciones.filter((s) => s.estado === 'ACTIVA');
+    if (sedeId === undefined) return activas[0];
+    return (
+      activas.find((s) => s.sedeId === sedeId) ??
+      activas.find((s) => s.accesoMultisede)
+    );
+  }, [suscripciones, sedeId]);
+
+  // Pagos filtrados por la sede seleccionada (todo si no hay sede).
+  const pagos = useMemo(() => {
+    const list = perfil?.ultimosPagos ?? [];
+    return sedeId === undefined ? list : list.filter((p) => p.sedeId === sedeId);
+  }, [perfil, sedeId]);
+
+  // Para la card de plan, derivamos del stats (sub) + el ultimo pago de esa sede.
+  const plan = stats
+    ? {
+        plan: stats.plan,
+        estado: stats.estado,
+        vigenciaHasta: stats.fin,
+        fechaPago: pagos[0]?.fechaPago ?? null,
+      }
+    : null;
 
   const diasRestantes = plan?.vigenciaHasta
     ? daysFromNow(plan.vigenciaHasta)

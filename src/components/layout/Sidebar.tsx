@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
 import { useBrand } from '../../brand/context';
+import SedeSelector from './SedeSelector';
 import './Sidebar.css';
 
 const navItems = [
@@ -24,6 +25,10 @@ export default function Sidebar() {
       <div className="sidebar-brand">
         <img src={brand.logos.logoWhite} alt={brand.text.fullName} className="sidebar-logo" />
         <span className="sidebar-tagline italiana">{brand.text.tagline}</span>
+      </div>
+
+      <div className="sidebar-sede">
+        <SedeSelector variant="sidebar" />
       </div>
 
       <nav className="sidebar-nav">

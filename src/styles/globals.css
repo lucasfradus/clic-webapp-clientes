@@ -151,6 +151,11 @@ img {
 .mobile-header-logo {
   width: 48px;
 }
+.mobile-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 .mobile-header-avatar {
   width: 34px;
   height: 34px;

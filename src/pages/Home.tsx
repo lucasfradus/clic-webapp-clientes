@@ -1,7 +1,8 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Watermark from '../components/brand/Watermark';
 import { useAuth } from '../store/auth';
+import { useSelectedSede } from '../store/sede';
 import { useBrand } from '../brand/context';
 import { getSuscripciones } from '../api/suscripciones';
 import { getTurnos } from '../api/turnos';
@@ -18,6 +19,7 @@ import './Home.css';
 
 export default function Home() {
   const perfil = useAuth((s) => s.perfil);
+  const selectedSede = useSelectedSede();
   const navigate = useNavigate();
   const brand = useBrand();
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
@@ -56,15 +58,41 @@ export default function Home() {
     return () => window.removeEventListener('focus', onFocus);
   }, [load]);
 
-  const active = suscripciones.find((s) => s.estado === 'ACTIVA');
-  const fallback = !active ? suscripciones[0] : null;
-  const proxima = turnos.find((t) => t.estado === 'CONFIRMADA');
-  const reservas = turnos
+  const sedeId = selectedSede?.id;
+  // Sub que aplica a la sede seleccionada: local primero, multisede como fallback.
+  const active = useMemo(() => {
+    const activas = suscripciones.filter((s) => s.estado === 'ACTIVA');
+    if (sedeId === undefined) return activas[0];
+    return (
+      activas.find((s) => s.sedeId === sedeId) ??
+      activas.find((s) => s.accesoMultisede)
+    );
+  }, [suscripciones, sedeId]);
+  const fallback = useMemo(
+    () =>
+      !active
+        ? suscripciones.find((s) => sedeId === undefined || s.sedeId === sedeId) ??
+          suscripciones[0]
+        : null,
+    [active, suscripciones, sedeId]
+  );
+  const turnosSede = useMemo(
+    () => (sedeId === undefined ? turnos : turnos.filter((t) => t.sede.id === sedeId)),
+    [turnos, sedeId]
+  );
+  const proxima = turnosSede.find((t) => t.estado === 'CONFIRMADA');
+  const reservas = turnosSede
     .filter((t) => t.estado === 'CONFIRMADA')
     .slice(0, 5);
-  const historialItems = [...historial, ...cancelados]
-    .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
-    .slice(0, 10);
+  const historialItems = useMemo(() => {
+    const items =
+      sedeId === undefined
+        ? [...historial, ...cancelados]
+        : [...historial, ...cancelados].filter((t) => t.sede.id === sedeId);
+    return items
+      .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())
+      .slice(0, 10);
+  }, [historial, cancelados, sedeId]);
 
   return (
     <div className="page home">

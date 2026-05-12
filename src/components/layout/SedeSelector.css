@@ -1,0 +1,136 @@
+.sede-selector {
+  position: relative;
+  display: inline-flex;
+  min-width: 0;
+}
+
+/* Trigger */
+.sede-selector-trigger,
+.sede-selector--static {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--line-soft);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  max-width: 100%;
+}
+.sede-selector-trigger:hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+.sede-selector-trigger.visitor {
+  border-color: var(--taupe);
+}
+
+.sede-selector-icon {
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0.7;
+}
+
+.sede-selector-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.sede-selector-badge {
+  background: var(--taupe);
+  color: var(--ink);
+  font-size: 8px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 8px;
+  letter-spacing: 0.8px;
+}
+
+.sede-selector-caret {
+  font-size: 10px;
+  opacity: 0.5;
+  margin-left: 2px;
+}
+
+/* Menu */
+.sede-selector-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+}
+.sede-selector-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  font-size: 13px;
+  border-radius: 8px;
+  color: var(--ink);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  width: 100%;
+}
+.sede-selector-item:hover {
+  background: var(--bg);
+}
+.sede-selector-item.active {
+  background: var(--bg);
+  font-weight: 600;
+}
+.sede-selector-hint {
+  font-size: 10px;
+  color: var(--taupe);
+  letter-spacing: 0.5px;
+}
+
+/* Sidebar variant: dark background */
+.sede-selector--sidebar {
+  display: block;
+  width: 100%;
+}
+.sede-selector--sidebar .sede-selector-trigger,
+.sede-selector--sidebar.sede-selector--static {
+  background: rgba(253, 251, 250, 0.05);
+  border-color: rgba(253, 251, 250, 0.12);
+  color: var(--surface);
+  width: 100%;
+  justify-content: flex-start;
+}
+.sede-selector--sidebar .sede-selector-trigger:hover {
+  background: rgba(253, 251, 250, 0.1);
+}
+.sede-selector--sidebar .sede-selector-label {
+  flex: 1;
+  max-width: none;
+}
+.sede-selector--sidebar .sede-selector-menu {
+  right: auto;
+  left: 0;
+  width: calc(100% - 0px);
+}
+
+/* Header variant: compact */
+.sede-selector--header .sede-selector-trigger {
+  padding: 6px 10px;
+  font-size: 11px;
+}
+.sede-selector--header .sede-selector-label {
+  max-width: 110px;
+}

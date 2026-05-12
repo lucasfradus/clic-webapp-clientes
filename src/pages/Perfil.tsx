@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Watermark from '../components/brand/Watermark';
 import { useAuth } from '../store/auth';
+import { useSelectedSede } from '../store/sede';
 import { useBrand } from '../brand/context';
 import { getTurnos } from '../api/turnos';
 import { getSuscripciones } from '../api/suscripciones';
-import { getSede } from '../api/perfil';
-import type { Turno, Suscripcion, Sede } from '../types';
+import type { Turno, Suscripcion } from '../types';
 import { parse } from '../lib/date';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
@@ -21,20 +21,34 @@ export default function Perfil() {
   const navigate = useNavigate();
   const [historial, setHistorial] = useState<Turno[]>([]);
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
-  const [sede, setSede] = useState<Sede | null>(null);
+  const sede = useSelectedSede();
+  const sedeId = sede?.id;
 
   useEffect(() => {
-    Promise.all([getTurnos('historial'), getSuscripciones(), getSede()])
-      .then(([h, s, sd]) => {
+    Promise.all([getTurnos('historial'), getSuscripciones()])
+      .then(([h, s]) => {
         setHistorial(h);
         setSuscripciones(s);
-        setSede(sd);
       })
       .catch((e: ApiError) => toast.error(e.message));
   }, []);
 
-  const asistidos = historial.filter((t) => t.estado === 'ASISTIO');
-  const activa = suscripciones.find((s) => s.estado === 'ACTIVA');
+  const historialSede = useMemo(
+    () =>
+      sedeId === undefined
+        ? historial
+        : historial.filter((t) => t.sede.id === sedeId),
+    [historial, sedeId]
+  );
+  const asistidos = historialSede.filter((t) => t.estado === 'ASISTIO');
+  const activa = useMemo(() => {
+    const activas = suscripciones.filter((s) => s.estado === 'ACTIVA');
+    if (sedeId === undefined) return activas[0];
+    return (
+      activas.find((s) => s.sedeId === sedeId) ??
+      activas.find((s) => s.accesoMultisede)
+    );
+  }, [suscripciones, sedeId]);
   const restantes = activa
     ? activa.accesos + activa.accesosExtra - activa.accesosUsados
     : 0;
@@ -66,10 +80,7 @@ export default function Perfil() {
 
   const initial = (perfil?.nombre ?? '?').charAt(0).toUpperCase();
 
-  const whatsappHref =
-    sede?.telefono
-      ? `https://wa.me/${sede.telefono.replace(/[^\d]/g, '')}`
-      : null;
+  const whatsappHref = sede?.whatsappUrl ?? null;
 
   const menu = [
     { label: 'Datos personales', icon: '☺', to: '/perfil/editar' },

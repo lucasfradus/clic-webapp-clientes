@@ -3,15 +3,13 @@ import Watermark from '../components/brand/Watermark';
 import { getClases } from '../api/clases';
 import { getSuscripciones } from '../api/suscripciones';
 import { getTurnos } from '../api/turnos';
-import { getSede } from '../api/perfil';
-import { getSedesAccesibles, getSalones } from '../api/sedes';
+import { getSalones } from '../api/sedes';
 import { reservar, cancelarReserva } from '../api/reservas';
+import { useSelectedSede } from '../store/sede';
 import type {
   Clase,
   Suscripcion,
   Turno,
-  Sede,
-  SedeAccesible,
   Salon,
 } from '../types';
 import {
@@ -33,17 +31,15 @@ export default function Agenda() {
   const [weekRef, setWeekRef] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState(() => new Date());
 
-  const [sedes, setSedes] = useState<SedeAccesible[]>([]);
-  const [selectedSedeId, setSelectedSedeId] = useState<number | undefined>();
+  const selectedSede = useSelectedSede();
+  const selectedSedeId = selectedSede?.id;
   const [salones, setSalones] = useState<Salon[]>([]);
   const [selectedSalonId, setSelectedSalonId] = useState<number | undefined>();
 
   const [clases, setClases] = useState<Clase[]>([]);
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
-  const [sedeHome, setSedeHome] = useState<Sede | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const [sedeDropdown, setSedeDropdown] = useState(false);
   const [salonDropdown, setSalonDropdown] = useState(false);
 
   const [confirm, setConfirm] = useState<
@@ -68,33 +64,23 @@ export default function Agenda() {
     ? activa.accesos + activa.accesosExtra - activa.accesosUsados
     : 0;
 
-  const selectedSede = sedes.find((s) => s.id === selectedSedeId);
   const isVisitor = selectedSede && !selectedSede.esHome;
-  const showSedePill = sedes.length > 1;
   const showSalonPill = salones.length > 1;
 
-  // 1. Load sedes accesibles + suscripciones + sede home (para tolerancia)
+  // 1. Load suscripciones
   useEffect(() => {
-    getSedesAccesibles()
-      .then((list) => {
-        setSedes(list);
-        const home = list.find((s) => s.esHome) ?? list[0];
-        if (home) setSelectedSedeId(home.id);
-      })
-      .catch((e: ApiError) => toast.error(e.message));
-
     getSuscripciones()
       .then(setSuscripciones)
       .catch((e: ApiError) => toast.error(e.message));
-
-    getSede()
-      .then(setSedeHome)
-      .catch(() => {});
   }, []);
 
-  // 2. Load salones cuando cambia la sede
+  // 2. Reset salon y cargar salones cuando cambia la sede
   useEffect(() => {
-    if (selectedSedeId === undefined) return;
+    setSelectedSalonId(undefined);
+    if (selectedSedeId === undefined) {
+      setSalones([]);
+      return;
+    }
     getSalones(selectedSedeId)
       .then(setSalones)
       .catch((e: ApiError) => {
@@ -148,12 +134,6 @@ export default function Agenda() {
 
   const reservadasDelDia = clasesDelDia.filter((c) => c.yaReservada).length;
 
-  function handleSedeChange(newId: number) {
-    setSelectedSedeId(newId);
-    setSelectedSalonId(undefined);
-    setSedeDropdown(false);
-  }
-
   function handleSalonChange(newId: number | undefined) {
     setSelectedSalonId(newId);
     setSalonDropdown(false);
@@ -186,7 +166,7 @@ export default function Agenda() {
       return;
     }
     if (c.yaReservada) {
-      const tol = sedeHome?.toleranciaCancelacion ?? 2;
+      const tol = selectedSede?.toleranciaCancelacionHoras ?? 2;
       if (activa && activa.cancelacionesUsadas >= activa.cancelaciones) {
         toast.error('Ya usaste todas tus cancelaciones del mes');
         return;
@@ -218,7 +198,7 @@ export default function Agenda() {
     }
 
     // Antelación mínima para reservar (default 30 min)
-    const antelacion = sedeHome?.antelacionReservaMinutos ?? 30;
+    const antelacion = selectedSede?.antelacionReservaMinutos ?? 30;
     const minutosRestantes =
       (new Date(c.inicio).getTime() - Date.now()) / 60_000;
     if (minutosRestantes <= antelacion) {
@@ -270,99 +250,52 @@ export default function Agenda() {
         </div>
       </header>
 
-      {/* Pills sede / salón */}
-      {(showSedePill || showSalonPill) && (
+      {/* Pill de salón (sede vive en el header global) */}
+      {showSalonPill && (
         <div className="pills-row">
-          {showSedePill && selectedSede && (
-            <div className="pill-wrap">
-              <button
-                className={'pill-select' + (isVisitor ? ' visitor' : '')}
-                onClick={() => {
-                  setSedeDropdown((v) => !v);
-                  setSalonDropdown(false);
-                }}
-              >
-                <span className="pill-icon">📍</span>
-                <span>{selectedSede.nombre}</span>
-                {isVisitor && (
-                  <span className="pill-visitor-badge">VISITANTE</span>
-                )}
-                <span className="pill-caret">⌄</span>
-              </button>
-              {sedeDropdown && (
-                <>
-                  <div
-                    className="dropdown-backdrop"
-                    onClick={() => setSedeDropdown(false)}
-                  />
-                  <div className="dropdown">
-                    {sedes.map((s) => (
-                      <button
-                        key={s.id}
-                        className={
-                          'dropdown-item' +
-                          (s.id === selectedSedeId ? ' active' : '')
-                        }
-                        onClick={() => handleSedeChange(s.id)}
-                      >
-                        <span>{s.nombre}</span>
-                        {!s.esHome && (
-                          <span className="dropdown-hint">(visitante)</span>
-                        )}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
-
-          {showSalonPill && (
-            <div className="pill-wrap">
+          <div className="pill-wrap">
               <button
                 className="pill-select"
                 onClick={() => {
                   setSalonDropdown((v) => !v);
-                  setSedeDropdown(false);
                 }}
               >
                 <span className="pill-icon">▦</span>
                 <span>{selectedSalon ? selectedSalon.nombre : 'Todos'}</span>
                 <span className="pill-caret">⌄</span>
               </button>
-              {salonDropdown && (
-                <>
-                  <div
-                    className="dropdown-backdrop"
-                    onClick={() => setSalonDropdown(false)}
-                  />
-                  <div className="dropdown">
+            {salonDropdown && (
+              <>
+                <div
+                  className="dropdown-backdrop"
+                  onClick={() => setSalonDropdown(false)}
+                />
+                <div className="dropdown">
+                  <button
+                    className={
+                      'dropdown-item' +
+                      (selectedSalonId === undefined ? ' active' : '')
+                    }
+                    onClick={() => handleSalonChange(undefined)}
+                  >
+                    Todos los salones
+                  </button>
+                  {salones.map((s) => (
                     <button
+                      key={s.id}
                       className={
                         'dropdown-item' +
-                        (selectedSalonId === undefined ? ' active' : '')
+                        (s.id === selectedSalonId ? ' active' : '')
                       }
-                      onClick={() => handleSalonChange(undefined)}
+                      onClick={() => handleSalonChange(s.id)}
                     >
-                      Todos los salones
+                      {s.nombre}
                     </button>
-                    {salones.map((s) => (
-                      <button
-                        key={s.id}
-                        className={
-                          'dropdown-item' +
-                          (s.id === selectedSalonId ? ' active' : '')
-                        }
-                        onClick={() => handleSalonChange(s.id)}
-                      >
-                        {s.nombre}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              )}
-            </div>
-          )}
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       )}
 
