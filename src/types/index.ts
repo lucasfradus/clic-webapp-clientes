@@ -81,6 +81,8 @@ export interface Suscripcion {
   id: number;
   plan: string;
   modalidad: SuscripcionModalidad;
+  sedeId: number;
+  accesoMultisede: boolean;
   estado: SuscripcionEstado;
   inicio: string;
   fin: string;

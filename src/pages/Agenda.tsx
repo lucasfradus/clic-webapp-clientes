@@ -54,7 +54,16 @@ export default function Agenda() {
   const [busy, setBusy] = useState(false);
 
   const days = useMemo(() => weekDays(weekRef), [weekRef]);
-  const activa = suscripciones.find((s) => s.estado === 'ACTIVA');
+  // Sub que aplica a la sede seleccionada (politica A1: local gana sobre multisede).
+  // Si todavia no resolvimos la sede, caemos a la primera activa para no romper la UI inicial.
+  const activa = useMemo(() => {
+    const activas = suscripciones.filter((s) => s.estado === 'ACTIVA');
+    if (selectedSedeId === undefined) return activas[0];
+    return (
+      activas.find((s) => s.sedeId === selectedSedeId) ??
+      activas.find((s) => s.accesoMultisede)
+    );
+  }, [suscripciones, selectedSedeId]);
   const accesosRestantes = activa
     ? activa.accesos + activa.accesosExtra - activa.accesosUsados
     : 0;
