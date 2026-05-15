@@ -36,11 +36,10 @@ export default function Politicas() {
         ) : (
           <>
             <div className="tag-label">Versión {data.version}</div>
-            <div className="readonly-text">
-              {data.texto.split('\n').map((line, i) => (
-                <p key={i}>{line}</p>
-              ))}
-            </div>
+            <div
+              className="readonly-text"
+              dangerouslySetInnerHTML={{ __html: data.texto }}
+            />
           </>
         )}
       </div>
