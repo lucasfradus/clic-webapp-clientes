@@ -160,22 +160,36 @@ export default function Home() {
             </Link>
           </div>
           <div className="home-stats">
-            <div className="card stat">
-              <div className="tag-label">Clases</div>
-              <div className="stat-big italiana">
-                {active.accesosUsados} / {active.accesos}
+            {active.grupos && active.grupos.length > 0 ? (
+              active.grupos.map((g) => (
+                <div key={g.id} className="card stat">
+                  <div className="tag-label">{g.nombre}</div>
+                  <div className="stat-big italiana">
+                    {g.accesosUsados} / {g.accesos}
+                  </div>
+                  <div className="stat-sub">
+                    {Math.max(0, g.accesos - g.accesosUsados)} restantes
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="card stat">
+                <div className="tag-label">Clases</div>
+                <div className="stat-big italiana">
+                  {active.accesosUsados} / {active.accesos}
+                </div>
+                <div className="stat-sub">
+                  {Math.max(
+                    0,
+                    active.accesos + active.accesosExtra - active.accesosUsados
+                  )}{' '}
+                  restantes
+                </div>
+                <span className="badge ok" style={{ marginTop: 12 }}>
+                  {active.modalidad === 'HORARIO_FIJO' ? 'Horario fijo' : 'Pack'}
+                </span>
               </div>
-              <div className="stat-sub">
-                {Math.max(
-                  0,
-                  active.accesos + active.accesosExtra - active.accesosUsados
-                )}{' '}
-                restantes
-              </div>
-              <span className="badge ok" style={{ marginTop: 12 }}>
-                {active.modalidad === 'HORARIO_FIJO' ? 'Horario fijo' : 'Pack'}
-              </span>
-            </div>
+            )}
             <div className="card stat">
               <div className="tag-label">Cancelaciones</div>
               <div className="stat-big italiana">
