@@ -156,22 +156,36 @@ export default function Cuenta() {
           {/* Stats de accesos (vienen de /suscripciones) */}
           {stats && (
             <div className="cuenta-stats">
-              <div className="card">
-                <div className="tag-label">Clases</div>
-                <div className="cuenta-stat-big italiana">
-                  {stats.accesosUsados} / {stats.accesos}
+              {stats.grupos && stats.grupos.length > 0 ? (
+                stats.grupos.map((g) => (
+                  <div key={g.id} className="card">
+                    <div className="tag-label">{g.nombre}</div>
+                    <div className="cuenta-stat-big italiana">
+                      {g.accesosUsados} / {g.accesos}
+                    </div>
+                    <div className="cuenta-stat-sub">
+                      {Math.max(0, g.accesos - g.accesosUsados)} restantes
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="card">
+                  <div className="tag-label">Clases</div>
+                  <div className="cuenta-stat-big italiana">
+                    {stats.accesosUsados} / {stats.accesos}
+                  </div>
+                  <div className="cuenta-stat-sub">
+                    {Math.max(
+                      0,
+                      stats.accesos + stats.accesosExtra - stats.accesosUsados
+                    )}{' '}
+                    restantes
+                  </div>
+                  <span className="badge ok" style={{ marginTop: 12 }}>
+                    En curso
+                  </span>
                 </div>
-                <div className="cuenta-stat-sub">
-                  {Math.max(
-                    0,
-                    stats.accesos + stats.accesosExtra - stats.accesosUsados
-                  )}{' '}
-                  restantes
-                </div>
-                <span className="badge ok" style={{ marginTop: 12 }}>
-                  En curso
-                </span>
-              </div>
+              )}
               <div className="card">
                 <div className="tag-label">Cancelaciones</div>
                 <div className="cuenta-stat-big italiana">
