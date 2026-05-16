@@ -78,6 +78,14 @@ export type SuscripcionEstado =
   | 'CANCELADA'
   | 'CAMBIO_PLAN';
 
+export interface SuscripcionGrupo {
+  id: number;
+  nombre: string;
+  accesos: number;
+  accesosUsados: number;
+  accesosExtra: number;
+}
+
 export interface Suscripcion {
   id: number;
   plan: string;
@@ -92,6 +100,7 @@ export interface Suscripcion {
   accesosExtra: number;
   cancelaciones: number;
   cancelacionesUsadas: number;
+  grupos?: SuscripcionGrupo[];
 }
 
 export type MotivoNoDisponible =
