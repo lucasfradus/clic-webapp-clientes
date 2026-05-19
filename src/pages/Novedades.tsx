@@ -4,6 +4,8 @@ import { getNovedades } from '../api/novedades';
 import type { Novedad } from '../types';
 import { relativeFromNow } from '../lib/date';
 import { ApiError } from '../api/client';
+import { setLastSeenNovedadId } from '../lib/novedadesLeidas';
+import { useAuth } from '../store/auth';
 import './Novedades.css';
 
 type Status = 'loading' | 'ok' | 'error';
@@ -12,6 +14,7 @@ export default function Novedades() {
   const [status, setStatus] = useState<Status>('loading');
   const [items, setItems] = useState<Novedad[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const alumnoId = useAuth((s) => s.user?.alumnoId);
 
   const load = useCallback(async () => {
     setStatus('loading');
@@ -20,6 +23,10 @@ export default function Novedades() {
       const data = await getNovedades();
       setItems(data);
       setStatus('ok');
+      if (alumnoId && data.length > 0) {
+        const maxId = data.reduce((m, n) => (n.id > m ? n.id : m), 0);
+        setLastSeenNovedadId(alumnoId, maxId);
+      }
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message);
@@ -28,7 +35,7 @@ export default function Novedades() {
       }
       setStatus('error');
     }
-  }, []);
+  }, [alumnoId]);
 
   useEffect(() => {
     load();
