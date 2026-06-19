@@ -157,9 +157,18 @@ export type ReservaEstado =
   | 'AUSENTE'
   | 'ASISTIO';
 
+// Discrimina una reserva normal de una entrada en lista de espera.
+export type TurnoTipo = 'RESERVA' | 'LISTA_ESPERA';
+
+// Item plano de GET /turnos. `tipo` discrimina reserva de lista de espera y
+// `claseId` viene siempre. `reservaId`/`estado` solo aplican a RESERVA;
+// `posicion` solo a LISTA_ESPERA (necesaria para mostrar el puesto).
 export interface Turno {
-  reservaId: number;
-  estado: ReservaEstado;
+  tipo: TurnoTipo;
+  claseId: number;
+  reservaId?: number;
+  estado?: ReservaEstado;
+  posicion?: number;
   actividad: string;
   color: string;
   sede: { id: number; nombre: string };
@@ -167,6 +176,16 @@ export interface Turno {
   inicio: string;
   fin: string;
   cupo: number;
+}
+
+// Resultado normalizado de POST /reservas. Si la clase estaba llena, el alumno
+// queda en lista de espera (enListaEspera === true) y `posicion` indica el puesto.
+export interface ReservaResult {
+  enListaEspera: boolean;
+  posicion?: number;
+  yaEstaba?: boolean;
+  reservaId?: number;
+  message?: string;
 }
 
 // GET /consentimiento/texto

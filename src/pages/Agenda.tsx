@@ -4,13 +4,14 @@ import { getClases } from '../api/clases';
 import { getSuscripciones } from '../api/suscripciones';
 import { getTurnos } from '../api/turnos';
 import { getSalones } from '../api/sedes';
-import { reservar, cancelarReserva } from '../api/reservas';
+import { reservar, cancelarReserva, salirListaEspera } from '../api/reservas';
 import { useSelectedSede } from '../store/sede';
 import type {
   Clase,
   Suscripcion,
   Turno,
   Salon,
+  ReservaResult,
 } from '../types';
 import {
   weekDays,
@@ -37,6 +38,7 @@ export default function Agenda() {
   const [selectedSalonId, setSelectedSalonId] = useState<number | undefined>();
 
   const [clases, setClases] = useState<Clase[]>([]);
+  const [turnos, setTurnos] = useState<Turno[]>([]);
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -45,6 +47,8 @@ export default function Agenda() {
   const [confirm, setConfirm] = useState<
     | { kind: 'reservar'; clase: Clase }
     | { kind: 'cancelar'; clase: Clase; reservaId: number }
+    | { kind: 'lista-espera'; clase: Clase }
+    | { kind: 'salir-lista'; clase: Clase }
     | null
   >(null);
   const [busy, setBusy] = useState(false);
@@ -97,6 +101,41 @@ export default function Agenda() {
     }
   }, []);
 
+  // Turnos próximos: reservas confirmadas + entradas en lista de espera.
+  const loadTurnos = useCallback(async () => {
+    try {
+      setTurnos(await getTurnos('proximos'));
+    } catch (err) {
+      if (err instanceof ApiError) toast.error(err.message);
+    }
+  }, []);
+
+  // claseId -> reservaId (para cancelar sin re-fetch)
+  const reservaByClase = useMemo(() => {
+    const m = new Map<number, number>();
+    for (const t of turnos) {
+      if (
+        t.tipo === 'RESERVA' &&
+        t.estado === 'CONFIRMADA' &&
+        t.reservaId != null
+      ) {
+        m.set(t.claseId, t.reservaId);
+      }
+    }
+    return m;
+  }, [turnos]);
+
+  // claseId -> posición en lista de espera
+  const waitlistByClase = useMemo(() => {
+    const m = new Map<number, number | undefined>();
+    for (const t of turnos) {
+      if (t.tipo === 'LISTA_ESPERA') {
+        m.set(t.claseId, t.posicion);
+      }
+    }
+    return m;
+  }, [turnos]);
+
   // 3. Load clases cuando cambia sede, salón o semana
   const loadClases = useCallback(async () => {
     if (!activa || selectedSedeId === undefined) {
@@ -124,6 +163,22 @@ export default function Agenda() {
     loadClases();
   }, [loadClases]);
 
+  useEffect(() => {
+    loadTurnos();
+  }, [loadTurnos]);
+
+  // Pull-to-refresh: al volver a la pestaña refrescamos clases/turnos/plan.
+  // Clave para reflejar la promoción automática (espera -> reserva confirmada).
+  useEffect(() => {
+    const onFocus = () => {
+      loadClases();
+      loadTurnos();
+      loadSubs();
+    };
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
+  }, [loadClases, loadTurnos, loadSubs]);
+
   const clasesDelDia = useMemo(
     () =>
       clases
@@ -146,21 +201,39 @@ export default function Agenda() {
     );
   }
 
+  function isFull(c: Clase) {
+    return c.motivoNoDisponible === 'LLENO' || c.cupo - c.reservas <= 0;
+  }
+
   function statusBadge(c: Clase) {
     if (c.yaReservada) return <span className="badge tuya">Reservada</span>;
+    if (waitlistByClase.has(c.id)) {
+      const pos = waitlistByClase.get(c.id);
+      return (
+        <span className="badge wait">
+          En lista{pos != null ? ` · N°${pos}` : ''}
+        </span>
+      );
+    }
     if (isPast(c)) return <span className="badge fu">Ya comenzó</span>;
     if (c.motivoNoDisponible === 'FUERA_DE_VENTANA')
       return <span className="badge fu">No disponible</span>;
     if (c.motivoNoDisponible === 'SIN_ACCESOS')
       return <span className="badge lw">Sin accesos</span>;
     const libres = c.cupo - c.reservas;
-    if (libres <= 0) return <span className="badge fu">Sin disponibilidad</span>;
+    if (libres <= 0) return <span className="badge wait">Lista de espera</span>;
     if (libres <= 3)
       return <span className="badge lw">Baja disponibilidad</span>;
     return <span className="badge ok">Disponible</span>;
   }
 
   function onClaseClick(c: Clase) {
+    // Ya estás en lista de espera de esta clase -> ofrecer salir.
+    if (waitlistByClase.has(c.id)) {
+      setConfirm({ kind: 'salir-lista', clase: c });
+      return;
+    }
+
     if (!c.yaReservada && isPast(c)) {
       toast.error('Esta clase ya comenzó, no podés reservarla');
       return;
@@ -177,12 +250,21 @@ export default function Agenda() {
         );
         return;
       }
+      const reservaId = reservaByClase.get(c.id);
+      if (reservaId != null) {
+        setConfirm({ kind: 'cancelar', clase: c, reservaId });
+        return;
+      }
+      // Fallback: buscar la reserva por horario si no la tenemos mapeada.
       getTurnos('proximos')
-        .then((turnos: Turno[]) => {
-          const t = turnos.find(
-            (x) => x.inicio === c.inicio && x.estado === 'CONFIRMADA'
+        .then((ts: Turno[]) => {
+          const t = ts.find(
+            (x) =>
+              x.tipo === 'RESERVA' &&
+              x.inicio === c.inicio &&
+              x.estado === 'CONFIRMADA'
           );
-          if (!t) {
+          if (!t || t.reservaId == null) {
             toast.error('No se encontró la reserva');
             return;
           }
@@ -212,11 +294,29 @@ export default function Agenda() {
       toast.error('Esta clase aún no está disponible para reservar');
       return;
     }
-    if (c.cupo - c.reservas <= 0) {
-      toast.error('La clase está llena');
+    // Clase llena -> ofrecer lista de espera en vez de bloquear.
+    if (isFull(c)) {
+      setConfirm({ kind: 'lista-espera', clase: c });
       return;
     }
     setConfirm({ kind: 'reservar', clase: c });
+  }
+
+  function notifyWaitlist(res: ReservaResult) {
+    const pos = res.posicion;
+    if (res.yaEstaba) {
+      toast.info(
+        pos != null
+          ? `Ya estabas en la lista de espera (puesto N°${pos}). Te avisamos si se libera un cupo.`
+          : 'Ya estabas en la lista de espera de esta clase.'
+      );
+    } else {
+      toast.info(
+        pos != null
+          ? `La clase está completa. Quedaste en lista de espera (puesto N°${pos}). Si se libera un cupo, confirmamos tu lugar automáticamente y te avisamos.`
+          : 'La clase está completa. Quedaste en lista de espera. Si se libera un cupo, confirmamos tu lugar y te avisamos.'
+      );
+    }
   }
 
   async function confirmar() {
@@ -224,14 +324,24 @@ export default function Agenda() {
     setBusy(true);
     try {
       if (confirm.kind === 'reservar') {
-        await reservar(confirm.clase.id);
-        toast.success('Reserva confirmada');
-      } else {
+        const res = await reservar(confirm.clase.id);
+        // Defensa: si el cupo se agotó entre el render y el click, el backend
+        // puede devolver lista de espera igual.
+        if (res.enListaEspera) notifyWaitlist(res);
+        else toast.success('Reserva confirmada');
+      } else if (confirm.kind === 'lista-espera') {
+        const res = await reservar(confirm.clase.id);
+        if (res.enListaEspera) notifyWaitlist(res);
+        else toast.success('Reserva confirmada');
+      } else if (confirm.kind === 'cancelar') {
         await cancelarReserva(confirm.reservaId);
         toast.success('Reserva cancelada');
+      } else if (confirm.kind === 'salir-lista') {
+        await salirListaEspera(confirm.clase.id);
+        toast.success('Saliste de la lista de espera');
       }
       setConfirm(null);
-      await Promise.all([loadClases(), loadSubs()]);
+      await Promise.all([loadClases(), loadSubs(), loadTurnos()]);
     } catch (err) {
       if (err instanceof ApiError) toast.error(err.message);
     } finally {
@@ -382,6 +492,7 @@ export default function Agenda() {
               className={
                 'class-row' +
                 (c.yaReservada ? ' booked' : '') +
+                (waitlistByClase.has(c.id) ? ' waitlisted' : '') +
                 (!c.yaReservada && isPast(c) ? ' past' : '')
               }
               onClick={() => onClaseClick(c)}
@@ -429,6 +540,10 @@ export default function Agenda() {
             <div className="tag-label">
               {confirm.kind === 'reservar'
                 ? 'Reservar clase'
+                : confirm.kind === 'lista-espera'
+                ? 'Lista de espera'
+                : confirm.kind === 'salir-lista'
+                ? 'Salir de la lista'
                 : 'Cancelar reserva'}
             </div>
             <div className="italiana modal-title">{confirm.clase.actividad}</div>
@@ -443,12 +558,29 @@ export default function Agenda() {
               {confirm.clase.sede.nombre}
               {confirm.clase.salon ? ` · ${confirm.clase.salon.nombre}` : ''}
             </div>
-            {confirm.kind === 'reservar' && isVisitor && (
-              <div className="modal-visitor">
-                Vas a reservar en <strong>{selectedSede?.nombre}</strong>{' '}
-                (visitante)
+            {confirm.kind === 'lista-espera' && (
+              <div className="modal-wait">
+                Esta clase está completa. Si te anotás, quedás en{' '}
+                <strong>lista de espera</strong>. Si se libera un cupo,
+                confirmamos tu lugar automáticamente y te avisamos por email.
               </div>
             )}
+            {confirm.kind === 'salir-lista' && (
+              <div className="modal-wait">
+                {waitlistByClase.get(confirm.clase.id) != null
+                  ? `Estás en lista de espera (puesto N°${waitlistByClase.get(
+                      confirm.clase.id
+                    )}). Si salís, perdés tu lugar en la fila.`
+                  : 'Si salís, perdés tu lugar en la lista de espera.'}
+              </div>
+            )}
+            {(confirm.kind === 'reservar' || confirm.kind === 'lista-espera') &&
+              isVisitor && (
+                <div className="modal-visitor">
+                  Vas a {confirm.kind === 'lista-espera' ? 'anotarte' : 'reservar'}{' '}
+                  en <strong>{selectedSede?.nombre}</strong> (visitante)
+                </div>
+              )}
 
             <div className="modal-actions">
               <button
@@ -467,6 +599,10 @@ export default function Agenda() {
                   ? 'Enviando…'
                   : confirm.kind === 'reservar'
                   ? 'Confirmar'
+                  : confirm.kind === 'lista-espera'
+                  ? 'Anotarme en lista de espera'
+                  : confirm.kind === 'salir-lista'
+                  ? 'Salir de la lista'
                   : 'Cancelar reserva'}
               </button>
             </div>

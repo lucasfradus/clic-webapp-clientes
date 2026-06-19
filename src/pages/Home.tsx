@@ -6,11 +6,13 @@ import { useSelectedSede } from '../store/sede';
 import { useBrand } from '../brand/context';
 import { getSuscripciones } from '../api/suscripciones';
 import { getTurnos } from '../api/turnos';
+import { salirListaEspera } from '../api/reservas';
 import type { Suscripcion, Turno } from '../types';
 import {
   greeting,
   formatTime,
   formatDate,
+  formatDateLong,
   durationMinutes,
 } from '../lib/date';
 import { ApiError } from '../api/client';
@@ -27,6 +29,8 @@ export default function Home() {
   const [historial, setHistorial] = useState<Turno[]>([]);
   const [cancelados, setCancelados] = useState<Turno[]>([]);
   const [loading, setLoading] = useState(true);
+  const [leaving, setLeaving] = useState<Turno | null>(null);
+  const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -80,10 +84,31 @@ export default function Home() {
     () => (sedeId === undefined ? turnos : turnos.filter((t) => t.sede.id === sedeId)),
     [turnos, sedeId]
   );
-  const proxima = turnosSede.find((t) => t.estado === 'CONFIRMADA');
+  const proxima = turnosSede.find(
+    (t) => t.tipo === 'RESERVA' && t.estado === 'CONFIRMADA'
+  );
   const reservas = turnosSede
-    .filter((t) => t.estado === 'CONFIRMADA')
+    .filter((t) => t.tipo === 'RESERVA' && t.estado === 'CONFIRMADA')
     .slice(0, 5);
+  const listaEspera = useMemo(
+    () => turnosSede.filter((t) => t.tipo === 'LISTA_ESPERA'),
+    [turnosSede]
+  );
+
+  async function confirmLeave() {
+    if (!leaving) return;
+    setBusy(true);
+    try {
+      await salirListaEspera(leaving.claseId);
+      toast.success('Saliste de la lista de espera');
+      setLeaving(null);
+      await load();
+    } catch (err) {
+      if (err instanceof ApiError) toast.error(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
   const historialItems = useMemo(() => {
     const items =
       sedeId === undefined
@@ -251,6 +276,48 @@ export default function Home() {
         </>
       )}
 
+      {/* Lista de espera */}
+      {listaEspera.length > 0 && (
+        <>
+          <div className="home-section-head">
+            <div className="tag-label">En lista de espera</div>
+          </div>
+          <div className="home-wait-note">
+            Todavía no tenés el lugar. Si se libera un cupo, confirmamos tu
+            reserva automáticamente y te avisamos por email.
+          </div>
+          <div className="card home-reservas">
+            {listaEspera.map((w) => (
+              <div key={`we-${w.claseId}`} className="home-reserva-row">
+                <div className="home-reserva-time italiana">
+                  {formatTime(w.inicio)}
+                </div>
+                <div className="home-reserva-body">
+                  <div className="home-reserva-title italiana">
+                    {w.actividad}
+                  </div>
+                  <div className="home-reserva-meta">
+                    {formatDate(w.inicio)}
+                    {w.instructor ? ' · ' + w.instructor : ''}
+                  </div>
+                </div>
+                <div className="home-wait-actions">
+                  <span className="badge wait">
+                    En espera{w.posicion != null ? ` · N°${w.posicion}` : ''}
+                  </span>
+                  <button
+                    className="home-wait-leave"
+                    onClick={() => setLeaving(w)}
+                  >
+                    Salir
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {/* Historial */}
       {(historial.length > 0 || cancelados.length > 0) && (<>
       <div className="home-section-head">
@@ -288,6 +355,39 @@ export default function Home() {
               Tu pilates empieza acá.
             </div>
             <div className="tag-label">Consultá con tu sede</div>
+          </div>
+        </div>
+      )}
+
+      {leaving && (
+        <div
+          className="modal-backdrop"
+          onClick={() => !busy && setLeaving(null)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="tag-label">Salir de la lista</div>
+            <div className="italiana modal-title">{leaving.actividad}</div>
+            <div className="modal-meta">
+              {formatDateLong(leaving.inicio)} · {formatTime(leaving.inicio)}
+            </div>
+            <div className="modal-meta">{leaving.sede.nombre}</div>
+            <div className="modal-wait">
+              {leaving.posicion != null
+                ? `Estás en lista de espera (puesto N°${leaving.posicion}). Si salís, perdés tu lugar en la fila.`
+                : 'Si salís, perdés tu lugar en la lista de espera.'}
+            </div>
+            <div className="modal-actions">
+              <button
+                className="modal-secondary"
+                onClick={() => setLeaving(null)}
+                disabled={busy}
+              >
+                Volver
+              </button>
+              <button className="btn-taupe" onClick={confirmLeave} disabled={busy}>
+                {busy ? 'Enviando…' : 'Salir de la lista'}
+              </button>
+            </div>
           </div>
         </div>
       )}

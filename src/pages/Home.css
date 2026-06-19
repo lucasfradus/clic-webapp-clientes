@@ -141,6 +141,36 @@
   margin-top: 4px;
 }
 
+.home-wait-note {
+  font-size: 11px;
+  color: var(--ink-mute);
+  line-height: 1.45;
+  margin: -4px 0 14px;
+}
+.home-wait-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.home-wait-leave {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+.home-wait-leave:hover {
+  border-color: var(--ink-mute);
+  color: var(--ink);
+}
+
 .home-quote {
   display: flex;
   align-items: center;
