@@ -1,63 +1,61 @@
-# Feature: Autorización de menores — nuevo flujo (foto DNI del tutor)
+# Fix: loop infinito / ↔ /consentimiento (usuario menor, Sede Test)
 
-## Contexto
-El backend (ClicNet) cambió el flujo. Ya NO bloquea nada: es autogestión + registro,
-se comporta como el consentimiento pero sin gate de ruta. El artefacto clave es una
-FOTO del DNI del tutor (data URI base64), no una firma dibujada.
-Estados (`autorizacionMenoresEstado`): null → PENDIENTE → APROBADA | RECHAZADA (reenviable).
+## Diagnóstico
+- ProtectedRoute redirige a /consentimiento si `!perfil.consentimientoFirmado`.
+- Sede Test no tiene consentimiento de adultos asignado → `/consentimiento/texto`
+  devuelve `requerido: false` → Consentimiento parcheaba `consentimientoFirmado: true`
+  SOLO en el store del cliente (hack de fc75124) y navegaba a `/`.
+- El commit de ayer (3a61dcd) agregó `fetchPerfil()` al montar Home → el refetch
+  trae `consentimientoFirmado: false` del server, pisa el parche → loop infinito.
 
-## Reglas clave
-- NUNCA bloquear reservas por este flujo (no tocar ProtectedRoute ni reservas).
-- `requerido === false` (flag de sede) → no mostrar nada del flujo.
-- Reenviar solo con estado null o RECHAZADA; PENDIENTE/APROBADA no ofrecen reenvío.
-- POST único con: firma (texto), documento (data URI), version (de /texto),
-  tutorNombre/Apellido/Dni/Contacto/Relacion (PADRE|MADRE|TUTOR).
+## Causa raíz
+El guard depende de un flag por-alumno (`consentimientoFirmado`) sin saber si la
+sede requiere consentimiento. El server nunca informó "requerido".
 
 ## Plan
-- [x] Leer código actual (patrón consentimiento, perfil, home, client, types)
-- [x] types/index.ts: AutorizacionMenoresEstado, TutorRelacion, campos nuevos en Perfil,
-      AutorizacionMenoresTexto, AutorizacionMenoresFirmado, EnviarAutorizacionMenoresBody
-- [x] api/autorizacionMenores.ts: getTexto (sin auth), getFirmado (auth), enviar (auth)
-- [x] lib/image.ts: File → data URI JPEG comprimido (canvas, max ~1600px, q 0.82)
-- [x] pages/AutorizacionMenores.tsx (ruta /perfil/autorizacion-menores): refleja /firmado —
-      no enviada (CTA completar) · PENDIENTE (en revisión, sin reenvío) · APROBADA (ok) ·
-      RECHAZADA (motivo + CTA reenviar) · requerido=false (no aplica)
-- [x] pages/AutorizacionMenoresForm.tsx (ruta /perfil/autorizacion-menores/enviar):
-      texto legal + datos tutor + relación pills + foto DNI + aceptación → un POST.
-      Redirige a la página de estado si PENDIENTE/APROBADA.
-- [x] App.tsx: 2 rutas nuevas dentro del área protegida con AppLayout (NO bloqueante)
-- [x] Perfil.tsx: item de menú "Autorización de menores" solo si requerido
-- [x] Home.tsx: aviso/CTA no bloqueante si requerido y estado null|RECHAZADA;
-      refrescar perfil en load() para mantener el aviso al día
-- [x] npm run build (tsc -b + vite) verde
-- [x] Review adversarial del diff (workflow, 4 lentes + verificación) + hallazgos aplicados
+- [x] Backend (Clicnet, worktree desde origin/main): perfil GET devuelve
+      `consentimientoRequerido` (la sede del alumno tiene ConsentimientoSede).
+- [x] Webapp types: `consentimientoRequerido?: boolean` en Perfil.
+- [x] Webapp store auth: flag de sesión `consentimientoNoRequerido` (no vive en
+      perfil → un refetch no lo pisa). Reset en login/logout.
+- [x] Webapp ProtectedRoute: redirigir solo si requerido !== false && !firmado
+      && !consentimientoNoRequerido.
+- [x] Webapp Consentimiento: en rama `requerido: false` setear el flag de sesión
+      (en vez de falsificar consentimientoFirmado).
+- [x] Verificar: tsc/build webapp OK, tsc Clicnet worktree OK (prisma generate
+      propio del worktree).
 
 ## Review
-Hecho. Build verde (tsc -b + vite). Review multi-agente: 8 hallazgos, 5 confirmados,
-3 refutados (uno verificado contra el código real de ClicNet, otro empíricamente en
-Chrome headless). Todos los confirmados aplicados:
+Matriz de casos (webapp nueva):
+- Backend nuevo + sede sin consent (menor en Sede Test): perfil trae
+  `consentimientoRequerido: false` → ProtectedRoute nunca redirige. Sin bounce.
+- Backend viejo + sede sin consent: 1 bounce a /consentimiento → texto
+  `requerido: false` → flag de sesión → home estable aunque Home refetchee perfil.
+- Sede con consent, no firmado: redirige al form como siempre; al firmar,
+  fetchPerfil trae firmado=true → home.
+- Logout/login: flag de sesión se resetea (otro usuario en otro device/sede
+  no hereda el bypass).
+Backend: cambio aditivo en GET /perfil (branch fix/perfil-consentimiento-requerido
+en worktree C:\Users\nico-\Clicnet-wt-consent). No rompe la app mobile (campo nuevo).
 
-1. (media) Guard del form usaba `perfil` cacheado del store mientras la página de
-   estado usa `/firmado` fresco → botón "Volver a enviar" podía morir en un loop de
-   redirect silencioso tras un rechazo a mitad de sesión. Fix: el form ahora consulta
-   `GET /firmado` fresco al montar (junto con `/texto`) y decide el guard con eso;
-   el motivo de rechazo también sale de ahí, no del store.
-2. (baja) Sin retry si fallaba GET /texto o /firmado → botón "Reintentar" en ambas
-   páginas (mismo patrón que Novedades).
-3. (baja) `await fetchPerfil()` tras el POST retrasaba el toast/navegación → ahora
-   fire-and-forget (la página de estado consulta /firmado por su cuenta).
-4. (baja) `dangerouslySetInnerHTML` sin sanitizar (y /texto es sin auth) → se agregó
-   DOMPurify con helper compartido `lib/sanitize.ts`, aplicado a los 4 sinks del repo
-   (form nuevo, Consentimiento, Politicas, Novedades). JWT en localStorage era exfiltrable
-   ante XSS almacenado.
-Extra: la página de estado hace `fetchPerfil()` best-effort al montar para que el
-aviso de Home refleje aprobaciones/rechazos hechos desde recepción; se quitó
-`capture="environment"` del input de foto (iOS forzaba cámara sin opción de galería).
+# Feature: autorización de menores obligatoria (gate post-consentimiento)
 
-Refutados (no aplicados): CTA con `!firmado` (equivalente por invariante del backend,
-igual se alineó el predicado a `estado == null || RECHAZADA` por claridad); SVG 0x0 →
-JPEG 1x1 (falso en engines vigentes); copy de "sede no requiere" para mayores (contrato
-documentado dice que `requerido` es flag de sede).
+## Requerimiento (cambió respecto a ayer)
+Igual que el consentimiento: después de firmarlo, un menor NO puede usar la app
+hasta ENVIAR la autorización. PENDIENTE (en revisión) y APROBADA no bloquean.
 
-Pendiente de QA manual (requiere backend + cuenta de menor): flujo completo de envío
-con foto real contra staging.
+## Implementación
+- [x] ProtectedRoute: prop `requireAutorizacionMenores` (default true). Bloquea si
+      `autorizacionMenoresRequerido && (RECHAZADA || (estado null && !firmado))`.
+      Legacy (firmado del flujo viejo, sin estado) no bloquea. Orden: consent → menores.
+- [x] App.tsx: ruta standalone `/autorizacion-menores` (mismo componente
+      AutorizacionMenoresForm) en grupo con `requireAutorizacionMenores={false}`
+      (y consent requerido → orden correcto). Grupo de /consentimiento también
+      exento de menores (evita loop cruzado). Rutas /perfil/... quedan gateadas.
+- [x] AutorizacionMenoresForm: `await fetchPerfil()` ANTES de cada navigate
+      (lección del loop: el gate lee el store; navegar con datos viejos rebota).
+      Modo gate (pathname): sin botón volver, padding propio, tag "Antes de empezar".
+- [x] Home: se elimina el CTA no bloqueante (inalcanzable con el gate); queda el
+      fetchPerfil en load() que alimenta el gate si rechazan en sesión.
+- [x] Copys actualizados ("no bloquea reservas" ya no es cierto).
+- [x] tsc + build OK.

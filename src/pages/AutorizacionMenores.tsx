@@ -110,8 +110,8 @@ export default function AutorizacionMenores() {
             {!data.firmado && !data.estado && (
               <p className="form-note">
                 Como sos menor de edad, tu sede pide una autorización de tu padre,
-                madre o tutor/a con una foto de su documento. Podés seguir
-                reservando clases mientras tanto.
+                madre o tutor/a con una foto de su documento. Necesitás enviarla
+                para usar la app.
               </p>
             )}
 

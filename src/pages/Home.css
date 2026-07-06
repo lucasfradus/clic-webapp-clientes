@@ -19,36 +19,6 @@
   margin-top: 4px;
 }
 
-/* Aviso autorización de menores (no bloqueante) */
-.home-authz {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  font-family: inherit;
-  border: 1px solid var(--terracotta);
-  background: var(--terracotta-bg);
-  margin-bottom: 20px;
-}
-.home-authz-msg {
-  font-size: 20px;
-  margin-top: 8px;
-  color: var(--ink);
-}
-.home-authz-sub {
-  font-size: 12px;
-  color: var(--ink-soft);
-  margin-top: 6px;
-}
-.home-authz-arrow {
-  font-size: 18px;
-  color: var(--terracotta);
-  flex-shrink: 0;
-}
-
 .home-hero {
   margin-bottom: 36px;
 }

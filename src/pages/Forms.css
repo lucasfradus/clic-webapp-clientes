@@ -2,6 +2,10 @@
   max-width: 640px;
   margin: 0 auto;
 }
+/* Como gate standalone (sin el layout de la app, que ya da padding) */
+.form-page-standalone {
+  padding: 40px 20px;
+}
 .form-head {
   margin-bottom: 24px;
 }

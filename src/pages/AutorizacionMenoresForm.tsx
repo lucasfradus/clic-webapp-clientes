@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   getAutorizacionMenoresTexto,
   getAutorizacionMenoresFirmado,
@@ -26,6 +26,9 @@ const RELACIONES: { value: TutorRelacion; label: string }[] = [
 export default function AutorizacionMenoresForm() {
   const fetchPerfil = useAuth((s) => s.fetchPerfil);
   const navigate = useNavigate();
+  // En /autorizacion-menores actúa como gate obligatorio (sin layout de la app);
+  // en /perfil/autorizacion-menores/enviar es la vista de reenvío dentro de la app.
+  const esGate = useLocation().pathname === '/autorizacion-menores';
 
   const [data, setData] = useState<AutorizacionMenoresTexto | null>(null);
   const [firmado, setFirmado] = useState<AutorizacionMenoresFirmado | null>(null);
@@ -54,6 +57,9 @@ export default function AutorizacionMenoresForm() {
         estado.estado === 'PENDIENTE' ||
         estado.estado === 'APROBADA'
       ) {
+        // Sincronizar el perfil antes de salir: el gate de ProtectedRoute lee
+        // del store y con datos viejos rebotaría de vuelta acá (loop).
+        await fetchPerfil().catch(() => {});
         navigate('/perfil/autorizacion-menores', { replace: true });
         return;
       }
@@ -64,7 +70,7 @@ export default function AutorizacionMenoresForm() {
       if (err instanceof ApiError) toast.error(err.message);
       setStatus('error');
     }
-  }, [navigate]);
+  }, [navigate, fetchPerfil]);
 
   useEffect(() => {
     load();
@@ -107,8 +113,9 @@ export default function AutorizacionMenoresForm() {
         tutorContacto: contacto.trim(),
         tutorRelacion: relacion,
       });
-      // Best-effort, sin await: la página de estado consulta /firmado fresco.
-      fetchPerfil().catch(() => {});
+      // Con await: el gate de ProtectedRoute lee el estado del perfil en el
+      // store; navegar con datos viejos rebotaría de vuelta al form (loop).
+      await fetchPerfil();
       toast.success('Autorización enviada. Queda en revisión por el estudio.');
       navigate('/perfil/autorizacion-menores', { replace: true });
     } catch (err) {
@@ -119,15 +126,19 @@ export default function AutorizacionMenoresForm() {
   }
 
   return (
-    <div className="page form-page">
+    <div className={'page form-page' + (esGate ? ' form-page-standalone' : '')}>
       <header className="form-head">
-        <button
-          className="form-back"
-          onClick={() => navigate('/perfil/autorizacion-menores')}
-        >
-          ← Autorización
-        </button>
-        <div className="tag-label">Autogestión</div>
+        {!esGate && (
+          <button
+            className="form-back"
+            onClick={() => navigate('/perfil/autorizacion-menores')}
+          >
+            ← Autorización
+          </button>
+        )}
+        <div className="tag-label">
+          {esGate ? 'Antes de empezar' : 'Autogestión'}
+        </div>
         <h1 className="page-title">
           {data?.titulo ?? 'Autorización de menores'}
         </h1>
@@ -156,9 +167,9 @@ export default function AutorizacionMenoresForm() {
             )}
 
             <p className="form-note">
-              Este formulario lo completa tu padre, madre o tutor/a. No bloquea
-              tus reservas: podés seguir usando la app mientras el estudio la
-              revisa.
+              Este formulario lo completa tu padre, madre o tutor/a. Tu sede lo
+              pide para poder usar la app: al enviarlo queda en revisión del
+              estudio y ya podés seguir.
             </p>
 
             <div

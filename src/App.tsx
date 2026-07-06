@@ -22,9 +22,24 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
 
-        {/* Consentimiento: requiere token pero no consent */}
-        <Route element={<ProtectedRoute requireConsent={false} />}>
+        {/* Consentimiento: requiere token pero no consent ni autorización */}
+        <Route
+          element={
+            <ProtectedRoute
+              requireConsent={false}
+              requireAutorizacionMenores={false}
+            />
+          }
+        >
           <Route path="/consentimiento" element={<Consentimiento />} />
+        </Route>
+
+        {/* Autorización de menores (gate): requiere consent pero no autorización */}
+        <Route element={<ProtectedRoute requireAutorizacionMenores={false} />}>
+          <Route
+            path="/autorizacion-menores"
+            element={<AutorizacionMenoresForm />}
+          />
         </Route>
 
         {/* Área protegida normal */}
@@ -38,7 +53,7 @@ export default function App() {
             <Route path="/perfil/password" element={<CambiarPassword />} />
             <Route path="/perfil/consentimiento" element={<ConsentimientoFirmado />} />
             <Route path="/perfil/politicas" element={<Politicas />} />
-            {/* Autorización de menores: autogestión, nunca bloquea reservas */}
+            {/* Estado de la autorización de menores (con la autorización ya al día) */}
             <Route path="/perfil/autorizacion-menores" element={<AutorizacionMenores />} />
             <Route path="/perfil/autorizacion-menores/enviar" element={<AutorizacionMenoresForm />} />
             <Route path="/novedades" element={<Novedades />} />

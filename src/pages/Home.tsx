@@ -139,33 +139,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Autorización de menores: aviso no bloqueante (nunca corta reservas) */}
-      {perfil?.autorizacionMenoresRequerido &&
-        (perfil.autorizacionMenoresEstado == null ||
-          perfil.autorizacionMenoresEstado === 'RECHAZADA') && (
-          <button
-            className="card home-authz"
-            onClick={() => navigate('/perfil/autorizacion-menores/enviar')}
-          >
-            <div className="home-authz-body">
-              <div className="tag-label">Autorización de menores</div>
-              <div className="home-authz-msg italiana">
-                Completá la autorización de tu tutor
-              </div>
-              <div className="home-authz-sub">
-                {perfil.autorizacionMenoresEstado === 'RECHAZADA'
-                  ? `Fue rechazada${
-                      perfil.autorizacionMenoresMotivoRechazo
-                        ? `: ${perfil.autorizacionMenoresMotivoRechazo}`
-                        : ''
-                    }. Volvé a enviarla.`
-                  : 'Podés seguir reservando mientras tanto.'}
-              </div>
-            </div>
-            <span className="home-authz-arrow">→</span>
-          </button>
-        )}
-
       {/* Hero: próxima clase */}
       {proxima ? (
         <Link to="/agenda" className="card-dark home-hero home-hero-link">
