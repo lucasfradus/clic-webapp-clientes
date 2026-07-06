@@ -65,13 +65,9 @@ export default function Consentimiento() {
     getConsentimientoTexto()
       .then((res) => {
         if (!res.requerido) {
-          // Sede sin consentimiento: marcar como firmado para romper el loop
-          // de redirect entre / (exige consent) y /consentimiento (requerido: false)
-          useAuth.setState((s) =>
-            s.perfil
-              ? { perfil: { ...s.perfil, consentimientoFirmado: true } }
-              : {}
-          );
+          // Sede sin consentimiento: flag de sesión fuera de perfil, así un
+          // fetchPerfil posterior no lo pisa (evita loop / ↔ /consentimiento)
+          useAuth.setState({ consentimientoNoRequerido: true });
           navigate('/', { replace: true });
           return;
         }

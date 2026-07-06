@@ -61,6 +61,8 @@ export interface Perfil {
   fechaRegistro: string;
   consentimientoFirmado: boolean;
   consentimientoVersion: string | null;
+  /** La sede del alumno tiene consentimiento asignado. Ausente en backends viejos. */
+  consentimientoRequerido?: boolean;
   politicasFirmado?: boolean;
   politicasVersion?: string | null;
   autorizacionMenoresRequerido?: boolean;

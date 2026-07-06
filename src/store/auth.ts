@@ -9,6 +9,9 @@ interface AuthState {
   token: string | null;
   user: AuthUser | null;
   perfil: Perfil | null;
+  // La sede del alumno no exige consentimiento (lo confirmó /consentimiento/texto).
+  // Vive fuera de perfil para que un fetchPerfil no lo pise.
+  consentimientoNoRequerido: boolean;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -20,6 +23,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   token: getToken(),
   user: null,
   perfil: null,
+  consentimientoNoRequerido: false,
   loading: false,
 
   login: async (email, password) => {
@@ -27,7 +31,7 @@ export const useAuth = create<AuthState>((set, get) => ({
     try {
       const res = await authApi.login(email, password);
       setToken(res.token);
-      set({ token: res.token, user: res.user });
+      set({ token: res.token, user: res.user, consentimientoNoRequerido: false });
       await get().fetchPerfil();
       // Sedes solo si hay suscripcion activa (404 si no). Best-effort.
       await useSede.getState().bootstrap().catch(() => {});
@@ -44,7 +48,7 @@ export const useAuth = create<AuthState>((set, get) => ({
   logout: () => {
     clearToken();
     useSede.getState().reset();
-    set({ token: null, user: null, perfil: null });
+    set({ token: null, user: null, perfil: null, consentimientoNoRequerido: false });
   },
 
   fetchPerfil: async () => {
