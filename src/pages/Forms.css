@@ -91,6 +91,56 @@
   cursor: not-allowed;
 }
 
+.form-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+}
+.form-note.danger {
+  color: var(--terracotta);
+}
+
+/* Adjuntar foto (documento del tutor) */
+.photo-drop {
+  border: 1px dashed var(--line);
+  background: var(--bg);
+  border-radius: 14px;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--ink-soft);
+  font-size: 12px;
+  transition: border-color 0.15s;
+}
+.photo-drop:hover {
+  border-color: var(--taupe);
+}
+.photo-preview {
+  max-width: 100%;
+  max-height: 240px;
+  border-radius: 10px;
+  border: 1px solid var(--line-soft);
+  object-fit: contain;
+}
+
+.form-accept {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.form-accept input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--taupe);
+}
+
 .readonly-text {
   font-size: 12px;
   line-height: 1.7;

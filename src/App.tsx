@@ -12,6 +12,8 @@ import EditarPerfil from './pages/EditarPerfil';
 import CambiarPassword from './pages/CambiarPassword';
 import ConsentimientoFirmado from './pages/ConsentimientoFirmado';
 import Politicas from './pages/Politicas';
+import AutorizacionMenores from './pages/AutorizacionMenores';
+import AutorizacionMenoresForm from './pages/AutorizacionMenoresForm';
 import Toaster from './components/ui/Toaster';
 
 export default function App() {
@@ -36,6 +38,9 @@ export default function App() {
             <Route path="/perfil/password" element={<CambiarPassword />} />
             <Route path="/perfil/consentimiento" element={<ConsentimientoFirmado />} />
             <Route path="/perfil/politicas" element={<Politicas />} />
+            {/* Autorización de menores: autogestión, nunca bloquea reservas */}
+            <Route path="/perfil/autorizacion-menores" element={<AutorizacionMenores />} />
+            <Route path="/perfil/autorizacion-menores/enviar" element={<AutorizacionMenoresForm />} />
             <Route path="/novedades" element={<Novedades />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

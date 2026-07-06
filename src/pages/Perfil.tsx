@@ -86,6 +86,10 @@ export default function Perfil() {
     { label: 'Datos personales', icon: '☺', to: '/perfil/editar' },
     { label: 'Cambiar contraseña', icon: '⚙', to: '/perfil/password' },
     { label: 'Consentimiento informado', icon: '✎', to: '/perfil/consentimiento' },
+    // Solo si la sede tiene activada la autorización de menores
+    ...(perfil?.autorizacionMenoresRequerido
+      ? [{ label: 'Autorización de menores', icon: '✦', to: '/perfil/autorizacion-menores' }]
+      : []),
     { label: 'Políticas del establecimiento', icon: '§', to: '/perfil/politicas' },
   ];
 

@@ -63,8 +63,11 @@ export interface Perfil {
   consentimientoVersion: string | null;
   politicasFirmado?: boolean;
   politicasVersion?: string | null;
+  autorizacionMenoresRequerido?: boolean;
   autorizacionMenoresFirmado?: boolean;
   autorizacionMenoresVersion?: string | null;
+  autorizacionMenoresEstado?: AutorizacionMenoresEstado | null;
+  autorizacionMenoresMotivoRechazo?: string | null;
   sede: { id: number; nombre: string };
   suscripcionActiva: SuscripcionActiva | null;
   ultimosPagos: UltimoPago[];
@@ -228,6 +231,52 @@ export interface FirmarConsentimientoBody {
   consentimientoId: number;
   emergencia: ContactoEmergencia;
   salud: DatosSalud;
+}
+
+// Autorización de menores. NO bloquea nada: es autogestión + registro.
+// null = nunca enviada · PENDIENTE = esperando revisión de recepción ·
+// APROBADA · RECHAZADA (el tutor puede reenviarla).
+export type AutorizacionMenoresEstado = 'PENDIENTE' | 'APROBADA' | 'RECHAZADA';
+
+export type TutorRelacion = 'PADRE' | 'MADRE' | 'TUTOR';
+
+// GET /autorizacion-menores/texto (sin auth)
+export interface AutorizacionMenoresTexto {
+  version: string;
+  titulo: string;
+  texto: string;
+}
+
+// GET /autorizacion-menores/firmado — siempre responde 200
+export interface AutorizacionMenoresFirmado {
+  requerido: boolean;
+  firmado: boolean;
+  estado: AutorizacionMenoresEstado | null;
+  motivoRechazo: string | null;
+  fecha?: string | null;
+  version?: string | null;
+  firma?: string | null;
+  documentoUrl?: string | null;
+  ip?: string | null;
+  tutor?: {
+    nombre: string;
+    apellido: string;
+    dni: string;
+    contacto: string;
+    relacion: TutorRelacion;
+  } | null;
+}
+
+// POST /autorizacion-menores — documento = foto del DNI del tutor (data URI)
+export interface EnviarAutorizacionMenoresBody {
+  firma: string;
+  documento: string;
+  version: string;
+  tutorNombre: string;
+  tutorApellido: string;
+  tutorDni: string;
+  tutorContacto: string;
+  tutorRelacion: TutorRelacion;
 }
 
 export interface Novedad {

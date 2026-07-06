@@ -32,8 +32,13 @@ export default function Home() {
   const [leaving, setLeaving] = useState<Turno | null>(null);
   const [busy, setBusy] = useState(false);
 
+  const fetchPerfil = useAuth((s) => s.fetchPerfil);
+
   const load = useCallback(async () => {
     setLoading(true);
+    // Refresca el perfil (best-effort) para mantener al día el aviso de
+    // autorización de menores cuando recepción la aprueba/rechaza.
+    fetchPerfil().catch(() => {});
     try {
       const [subs, t, hist, canc] = await Promise.all([
         getSuscripciones(),
@@ -50,7 +55,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchPerfil]);
 
   useEffect(() => {
     load();
@@ -133,6 +138,33 @@ export default function Home() {
           {formatDate(new Date().toISOString(), "EEE d MMM")}
         </div>
       </header>
+
+      {/* Autorización de menores: aviso no bloqueante (nunca corta reservas) */}
+      {perfil?.autorizacionMenoresRequerido &&
+        (perfil.autorizacionMenoresEstado == null ||
+          perfil.autorizacionMenoresEstado === 'RECHAZADA') && (
+          <button
+            className="card home-authz"
+            onClick={() => navigate('/perfil/autorizacion-menores/enviar')}
+          >
+            <div className="home-authz-body">
+              <div className="tag-label">Autorización de menores</div>
+              <div className="home-authz-msg italiana">
+                Completá la autorización de tu tutor
+              </div>
+              <div className="home-authz-sub">
+                {perfil.autorizacionMenoresEstado === 'RECHAZADA'
+                  ? `Fue rechazada${
+                      perfil.autorizacionMenoresMotivoRechazo
+                        ? `: ${perfil.autorizacionMenoresMotivoRechazo}`
+                        : ''
+                    }. Volvé a enviarla.`
+                  : 'Podés seguir reservando mientras tanto.'}
+              </div>
+            </div>
+            <span className="home-authz-arrow">→</span>
+          </button>
+        )}
 
       {/* Hero: próxima clase */}
       {proxima ? (
