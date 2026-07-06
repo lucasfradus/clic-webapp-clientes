@@ -9,6 +9,7 @@ import { useAuth } from '../store/auth';
 import { toast } from '../store/toast';
 import { ApiError } from '../api/client';
 import { formatShortDate } from '../lib/date';
+import { sanitizeHtml } from '../lib/sanitize';
 import type {
   ConsentimientoTexto,
   ContactoEmergencia,
@@ -326,7 +327,7 @@ export default function Consentimiento() {
           <div className="consent-section-title">Consentimiento informado</div>
           <div
             className="consent-text"
-            dangerouslySetInnerHTML={{ __html: data.texto }}
+            dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.texto) }}
           />
         </section>
 

@@ -4,6 +4,7 @@ import { getPoliticasTexto } from '../api/politicas';
 import type { PoliticasTexto } from '../types';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
+import { sanitizeHtml } from '../lib/sanitize';
 import './Forms.css';
 
 export default function Politicas() {
@@ -38,7 +39,7 @@ export default function Politicas() {
             <div className="tag-label">Versión {data.version}</div>
             <div
               className="readonly-text"
-              dangerouslySetInnerHTML={{ __html: data.texto }}
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(data.texto) }}
             />
           </>
         )}

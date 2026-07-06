@@ -5,6 +5,7 @@ import type { Novedad } from '../types';
 import { relativeFromNow } from '../lib/date';
 import { ApiError } from '../api/client';
 import { setLastSeenNovedadId } from '../lib/novedadesLeidas';
+import { sanitizeHtml } from '../lib/sanitize';
 import { useAuth } from '../store/auth';
 import './Novedades.css';
 
@@ -108,7 +109,7 @@ export default function Novedades() {
 
               <div
                 className="nov-contenido"
-                dangerouslySetInnerHTML={{ __html: n.contenido }}
+                dangerouslySetInnerHTML={{ __html: sanitizeHtml(n.contenido) }}
               />
             </article>
           ))}
