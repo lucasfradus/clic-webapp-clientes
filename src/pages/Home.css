@@ -251,6 +251,7 @@
   color: var(--surface);
   border: none;
   padding: 18px 22px;
+  margin-bottom: 20px;
   text-decoration: none;
 }
 .home-qr-icon {
