@@ -1,0 +1,71 @@
+/* Vista de acceso: fullscreen blanco para máximo contraste/brillo percibido. */
+.acceso {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.acceso-back {
+  position: absolute;
+  top: max(16px, env(safe-area-inset-top));
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: #111;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.acceso-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 20px;
+}
+
+.acceso-qr {
+  background: #ffffff;
+  padding: 16px;
+  border-radius: 16px;
+  /* Mantiene el QR nítido y garantiza quiet-zone blanca alrededor. */
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.acceso-qr svg {
+  display: block;
+  width: 260px;
+  height: 260px;
+}
+
+.acceso-nombre {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111;
+}
+
+.acceso-hint {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #888;
+}
+
+.acceso-msg {
+  max-width: 280px;
+  font-size: 16px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.acceso-msg.subtle {
+  color: #999;
+}

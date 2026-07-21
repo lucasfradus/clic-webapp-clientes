@@ -139,6 +139,19 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Acceso: solo si la sede seleccionada tiene control de acceso (molinete
+          propio o anfitrión). No inferir de esHome ni del plan. */}
+      {selectedSede?.controlAcceso?.disponible && (
+        <Link to="/acceso" className="card home-qr-btn">
+          <span className="home-qr-icon" aria-hidden="true">▦</span>
+          <span className="home-qr-text">
+            <span className="home-qr-title">Mostrar mi QR</span>
+            <span className="home-qr-sub">Acceso a {selectedSede.nombre}</span>
+          </span>
+          <span className="home-qr-caret" aria-hidden="true">→</span>
+        </Link>
+      )}
+
       {/* Hero: próxima clase */}
       {proxima ? (
         <Link to="/agenda" className="card-dark home-hero home-hero-link">

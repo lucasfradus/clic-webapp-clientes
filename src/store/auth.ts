@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import * as authApi from '../api/auth';
 import * as perfilApi from '../api/perfil';
 import { setToken, clearToken, getToken } from '../api/client';
+import { clearCachedQr } from '../lib/accessQr';
 import { useSede } from './sede';
 import type { AuthUser, Perfil } from '../types';
 
@@ -47,6 +48,7 @@ export const useAuth = create<AuthState>((set, get) => ({
 
   logout: () => {
     clearToken();
+    clearCachedQr();
     useSede.getState().reset();
     set({ token: null, user: null, perfil: null, consentimientoNoRequerido: false });
   },

@@ -239,3 +239,42 @@
     font-size: 10px;
   }
 }
+
+/* Botón de acceso (QR) — CTA protagonista arriba de la Home */
+.home-qr-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--ink);
+  color: var(--surface);
+  border: none;
+  padding: 18px 22px;
+  text-decoration: none;
+}
+.home-qr-icon {
+  font-size: 30px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.home-qr-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.home-qr-title {
+  font-size: 16px;
+  font-weight: 600;
+}
+.home-qr-sub {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(253, 251, 250, 0.55);
+}
+.home-qr-caret {
+  font-size: 18px;
+  color: var(--taupe);
+  flex-shrink: 0;
+}

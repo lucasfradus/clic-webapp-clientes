@@ -8,6 +8,7 @@ import Agenda from './pages/Agenda';
 import Cuenta from './pages/Cuenta';
 import Perfil from './pages/Perfil';
 import Novedades from './pages/Novedades';
+import Acceso from './pages/Acceso';
 import EditarPerfil from './pages/EditarPerfil';
 import CambiarPassword from './pages/CambiarPassword';
 import ConsentimientoFirmado from './pages/ConsentimientoFirmado';
@@ -40,6 +41,11 @@ export default function App() {
             path="/autorizacion-menores"
             element={<AutorizacionMenoresForm />}
           />
+        </Route>
+
+        {/* Credencial de acceso: fullscreen, sin layout (tab bar) para el molinete */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/acceso" element={<Acceso />} />
         </Route>
 
         {/* Área protegida normal */}
