@@ -1,61 +1,40 @@
-# Fix: loop infinito / ↔ /consentimiento (usuario menor, Sede Test)
+# QR de acceso en la webapp de clientes
 
-## Diagnóstico
-- ProtectedRoute redirige a /consentimiento si `!perfil.consentimientoFirmado`.
-- Sede Test no tiene consentimiento de adultos asignado → `/consentimiento/texto`
-  devuelve `requerido: false` → Consentimiento parcheaba `consentimientoFirmado: true`
-  SOLO en el store del cliente (hack de fc75124) y navegaba a `/`.
-- El commit de ayer (3a61dcd) agregó `fetchPerfil()` al montar Home → el refetch
-  trae `consentimientoFirmado: false` del server, pisa el parche → loop infinito.
+Backend Clicnet ya listo: `GET /api/v1/control-acceso/qr` → `{ qrValue }` y el flag
+`controlAcceso: { disponible, sedeMolineteId }` en cada fila de `/api/v1/sedes` y en `/api/v1/sede`.
+Falta el consumo en `clic-webapp-clientes`.
 
-## Causa raíz
-El guard depende de un flag por-alumno (`consentimientoFirmado`) sin saber si la
-sede requiere consentimiento. El server nunca informó "requerido".
+Decisiones UX (confirmadas): botón en Home + vista QR fullscreen a máximo brillo percibido
+(fondo blanco + Screen Wake Lock; no se puede forzar el brillo del SO desde la web).
 
-## Plan
-- [x] Backend (Clicnet, worktree desde origin/main): perfil GET devuelve
-      `consentimientoRequerido` (la sede del alumno tiene ConsentimientoSede).
-- [x] Webapp types: `consentimientoRequerido?: boolean` en Perfil.
-- [x] Webapp store auth: flag de sesión `consentimientoNoRequerido` (no vive en
-      perfil → un refetch no lo pisa). Reset en login/logout.
-- [x] Webapp ProtectedRoute: redirigir solo si requerido !== false && !firmado
-      && !consentimientoNoRequerido.
-- [x] Webapp Consentimiento: en rama `requerido: false` setear el flag de sesión
-      (en vez de falsificar consentimientoFirmado).
-- [x] Verificar: tsc/build webapp OK, tsc Clicnet worktree OK (prisma generate
-      propio del worktree).
+## Tareas
+
+- [x] 1. Tipos: `ControlAcceso { disponible, sedeMolineteId }` + `controlAcceso?` en `SedeAccesible`.
+- [x] 2. Dep `qrcode.react@4.2.0` (SVG puro, offline). Build OK.
+- [x] 3. API: `src/api/controlAcceso.ts` con `getCredencialQr()`.
+- [x] 4. Caché offline: `src/lib/accessQr.ts` — key única `clic_access_qr` con `{ ownerId, qrValue }`;
+       valida ownerId (perfil.id) y se limpia en `logout()`.
+- [x] 5. Vista `src/pages/Acceso.tsx` (+ css): fullscreen blanco, QR grande, Wake Lock + re-adquisición
+       en visibilitychange, botón cerrar. Estados: cargando / sin-conexión / ok.
+- [x] 6. Ruta `/acceso` en `App.tsx` en `ProtectedRoute` fuera de `AppLayout`.
+- [x] 7. Botón "Mostrar mi QR" en Home condicionado a `selectedSede?.controlAcceso?.disponible`.
+- [x] 8. Verificación: `npm run build` (tsc -b + vite) OK; render de QRCodeSVG a SVG válido con qrValue de ejemplo.
+
+## Notas de diseño
+
+- El `qrValue` es único por alumno (no depende de la sede). Visibilidad = por sede seleccionada.
+- Flujo Acceso: mostrar cache al instante → refrescar desde API en background → si difiere, actualizar.
+- No inferir disponibilidad de `esHome` ni reglas de plan; usar `controlAcceso.disponible` de la sede seleccionada.
 
 ## Review
-Matriz de casos (webapp nueva):
-- Backend nuevo + sede sin consent (menor en Sede Test): perfil trae
-  `consentimientoRequerido: false` → ProtectedRoute nunca redirige. Sin bounce.
-- Backend viejo + sede sin consent: 1 bounce a /consentimiento → texto
-  `requerido: false` → flag de sesión → home estable aunque Home refetchee perfil.
-- Sede con consent, no firmado: redirige al form como siempre; al firmar,
-  fetchPerfil trae firmado=true → home.
-- Logout/login: flag de sesión se resetea (otro usuario en otro device/sede
-  no hereda el bypass).
-Backend: cambio aditivo en GET /perfil (branch fix/perfil-consentimiento-requerido
-en worktree C:\Users\nico-\Clicnet-wt-consent). No rompe la app mobile (campo nuevo).
 
-# Feature: autorización de menores obligatoria (gate post-consentimiento)
+Implementado en rama `feat/qr-acceso-clientes`. Archivos:
+- `src/types/index.ts` (+ControlAcceso), `src/api/controlAcceso.ts` (nuevo),
+  `src/lib/accessQr.ts` (nuevo), `src/store/auth.ts` (clear en logout),
+  `src/pages/Acceso.tsx` + `.css` (nuevos), `src/App.tsx` (ruta), `src/pages/Home.tsx` + `.css` (botón).
 
-## Requerimiento (cambió respecto a ayer)
-Igual que el consentimiento: después de firmarlo, un menor NO puede usar la app
-hasta ENVIAR la autorización. PENDIENTE (en revisión) y APROBADA no bloquean.
+Verificado: build (typecheck + vite) OK; QRCodeSVG genera SVG válido.
 
-## Implementación
-- [x] ProtectedRoute: prop `requireAutorizacionMenores` (default true). Bloquea si
-      `autorizacionMenoresRequerido && (RECHAZADA || (estado null && !firmado))`.
-      Legacy (firmado del flujo viejo, sin estado) no bloquea. Orden: consent → menores.
-- [x] App.tsx: ruta standalone `/autorizacion-menores` (mismo componente
-      AutorizacionMenoresForm) en grupo con `requireAutorizacionMenores={false}`
-      (y consent requerido → orden correcto). Grupo de /consentimiento también
-      exento de menores (evita loop cruzado). Rutas /perfil/... quedan gateadas.
-- [x] AutorizacionMenoresForm: `await fetchPerfil()` ANTES de cada navigate
-      (lección del loop: el gate lee el store; navegar con datos viejos rebota).
-      Modo gate (pathname): sin botón volver, padding propio, tag "Antes de empezar".
-- [x] Home: se elimina el CTA no bloqueante (inalcanzable con el gate); queda el
-      fetchPerfil en load() que alimenta el gate si rechazan en sesión.
-- [x] Copys actualizados ("no bloquea reservas" ya no es cierto).
-- [x] tsc + build OK.
+Pendiente de prueba e2e con backend (necesita login + sede con molinete activo). El proxy de
+dev apunta a prod, así que no lo probé autenticado. Máximo brillo del SO no es forzable desde web;
+se resuelve con fondo blanco + Screen Wake Lock.

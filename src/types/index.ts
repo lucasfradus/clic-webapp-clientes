@@ -132,6 +132,15 @@ export interface Clase {
   motivoNoDisponible?: MotivoNoDisponible;
 }
 
+// Disponibilidad del control de acceso (molinete) para una sede.
+// `disponible` = la sede tiene molinete propio activo, o figura permitida en el
+// molinete de una sede anfitriona activa. `sedeMolineteId` puede diferir del id
+// de la sede (acceso físico compartido). No inferir de `esHome` ni del plan.
+export interface ControlAcceso {
+  disponible: boolean;
+  sedeMolineteId: number | null;
+}
+
 export interface SedeAccesible {
   id: number;
   nombre: string;
@@ -141,6 +150,8 @@ export interface SedeAccesible {
   toleranciaCancelacionHoras: number;
   antelacionReservaMinutos: number;
   esHome: boolean;
+  // Ausente en backends viejos → tratar como no disponible.
+  controlAcceso?: ControlAcceso;
 }
 
 export interface SalonActividad {
