@@ -240,8 +240,10 @@
   }
 }
 
-/* Botón de acceso (QR) — CTA protagonista arriba de la Home */
-.home-qr-btn {
+/* Botón de acceso (QR) — CTA protagonista arriba de la Home.
+   Selector compuesto .card.home-qr-btn para ganarle en especificidad al
+   background de .card (misma especificidad, .card se bundlea después). */
+.card.home-qr-btn {
   display: flex;
   align-items: center;
   gap: 16px;
