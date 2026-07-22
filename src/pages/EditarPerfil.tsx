@@ -1,9 +1,11 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { updatePerfil } from '../api/perfil';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
+import Avatar from '../components/ui/Avatar';
+import { useFotoPerfil } from '../lib/useFotoPerfil';
 import './Forms.css';
 
 const SEXOS = [
@@ -16,6 +18,8 @@ export default function EditarPerfil() {
   const perfil = useAuth((s) => s.perfil);
   const fetchPerfil = useAuth((s) => s.fetchPerfil);
   const navigate = useNavigate();
+  const { fotoUrl, subiendo, subirArchivo, quitar } = useFotoPerfil();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   const [nombre, setNombre] = useState('');
   const [apellido, setApellido] = useState('');
@@ -75,6 +79,44 @@ export default function EditarPerfil() {
       </header>
 
       <form className="card form-card" onSubmit={onSubmit}>
+        <div className="foto-editor">
+          <Avatar
+            className="foto-editor-avatar"
+            fotoUrl={fotoUrl}
+            nombre={perfil?.nombre}
+          />
+          <div className="foto-editor-actions">
+            <button
+              type="button"
+              className="foto-editor-btn"
+              onClick={() => fileRef.current?.click()}
+              disabled={subiendo}
+            >
+              {subiendo ? 'Subiendo…' : fotoUrl ? 'Cambiar foto' : 'Subir foto'}
+            </button>
+            {fotoUrl && (
+              <button
+                type="button"
+                className="foto-editor-remove"
+                onClick={quitar}
+                disabled={subiendo}
+              >
+                Quitar foto
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              subirArchivo(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
+        </div>
+
         <label className="form-field">
           <span className="tag-label">Email</span>
           <input type="email" value={perfil?.email ?? ''} disabled />

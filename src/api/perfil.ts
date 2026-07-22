@@ -17,6 +17,18 @@ export function updatePerfil(body: {
   return apiFetch<{ message: string }>('/perfil', { method: 'PUT', body });
 }
 
+/** Sube o reemplaza la foto de perfil. `foto` debe ser un data URI (png/jpg/webp), máx 10 MB. */
+export function uploadFotoPerfil(foto: string) {
+  return apiFetch<{ message: string; fotoUrl: string }>('/perfil/foto', {
+    method: 'PUT',
+    body: { foto },
+  });
+}
+
+export function deleteFotoPerfil() {
+  return apiFetch<{ message: string }>('/perfil/foto', { method: 'DELETE' });
+}
+
 export function getSede() {
   return apiFetch<Sede>('/sede');
 }

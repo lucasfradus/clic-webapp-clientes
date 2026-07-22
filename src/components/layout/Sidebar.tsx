@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../store/auth';
 import { useBrand } from '../../brand/context';
+import Avatar from '../ui/Avatar';
 import SedeSelector from './SedeSelector';
 import './Sidebar.css';
 
@@ -15,7 +16,6 @@ const navItems = [
 export default function Sidebar() {
   const perfil = useAuth((s) => s.perfil);
   const brand = useBrand();
-  const initial = (perfil?.nombre ?? '?').charAt(0).toUpperCase();
   const fullName = perfil
     ? `${perfil.nombre} ${perfil.apellido}`.trim()
     : '—';
@@ -47,7 +47,7 @@ export default function Sidebar() {
       </nav>
 
       <NavLink to="/perfil" className="sidebar-footer">
-        <div className="sidebar-avatar">{initial}</div>
+        <Avatar className="sidebar-avatar" fotoUrl={perfil?.fotoUrl} nombre={perfil?.nombre} />
         <div className="sidebar-user">
           <div className="sidebar-user-name">{fullName}</div>
           <div className="sidebar-user-link">Ver perfil →</div>

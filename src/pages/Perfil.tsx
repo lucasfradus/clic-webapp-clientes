@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Watermark from '../components/brand/Watermark';
+import Avatar from '../components/ui/Avatar';
+import { useFotoPerfil } from '../lib/useFotoPerfil';
 import { useAuth } from '../store/auth';
 import { useSelectedSede } from '../store/sede';
 import { useBrand } from '../brand/context';
@@ -23,6 +25,8 @@ export default function Perfil() {
   const [suscripciones, setSuscripciones] = useState<Suscripcion[]>([]);
   const sede = useSelectedSede();
   const sedeId = sede?.id;
+  const { fotoUrl, subiendo, subirArchivo, quitar } = useFotoPerfil();
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     Promise.all([getTurnos('historial'), getSuscripciones()])
@@ -78,8 +82,6 @@ export default function Perfil() {
     ? new Date(perfil.fechaRegistro).getFullYear()
     : '';
 
-  const initial = (perfil?.nombre ?? '?').charAt(0).toUpperCase();
-
   const whatsappHref = sede?.whatsappUrl ?? null;
 
   const menu = [
@@ -108,7 +110,44 @@ export default function Perfil() {
             opacity={0.9}
             position={{ top: 24, right: 24 }}
           />
-          <div className="perfil-avatar italiana">{initial}</div>
+          <div className="perfil-avatar-wrap">
+            <button
+              type="button"
+              className="perfil-avatar-btn"
+              onClick={() => fileRef.current?.click()}
+              disabled={subiendo}
+              aria-label="Cambiar foto de perfil"
+            >
+              <Avatar
+                className="perfil-avatar italiana"
+                fotoUrl={fotoUrl}
+                nombre={perfil?.nombre}
+              />
+              <span className="perfil-avatar-cam" aria-hidden>
+                {subiendo ? '…' : '✷'}
+              </span>
+            </button>
+            {fotoUrl && (
+              <button
+                type="button"
+                className="perfil-avatar-remove tag-label"
+                onClick={quitar}
+                disabled={subiendo}
+              >
+                Quitar foto
+              </button>
+            )}
+          </div>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            hidden
+            onChange={(e) => {
+              subirArchivo(e.target.files?.[0]);
+              e.target.value = '';
+            }}
+          />
           <div className="perfil-name italiana">
             {perfil?.nombre} {perfil?.apellido}
           </div>

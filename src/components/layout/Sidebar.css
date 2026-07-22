@@ -102,6 +102,8 @@
   justify-content: center;
   font-family: 'Italiana', serif;
   font-size: 18px;
+  position: relative;
+  overflow: hidden;
 }
 
 .sidebar-user {

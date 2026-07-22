@@ -59,6 +59,8 @@ export interface Perfil {
   direccion: string | null;
   fechaNacimiento: string | null;
   fechaRegistro: string;
+  /** Foto de perfil. URL (/api/storage/...) o data URI; null si no cargó ninguna. Ausente en backends viejos. */
+  fotoUrl?: string | null;
   consentimientoFirmado: boolean;
   consentimientoVersion: string | null;
   /** La sede del alumno tiene consentimiento asignado. Ausente en backends viejos. */
