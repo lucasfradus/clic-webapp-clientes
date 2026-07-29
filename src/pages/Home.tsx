@@ -15,6 +15,7 @@ import {
   formatDateLong,
   durationMinutes,
 } from '../lib/date';
+import { accesosReservables, accesosReservablesGrupo } from '../lib/accesos';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
 import './Home.css';
@@ -211,7 +212,7 @@ export default function Home() {
                     {g.accesosUsados} / {g.accesos}
                   </div>
                   <div className="stat-sub">
-                    {Math.max(0, g.accesos - g.accesosUsados)} restantes
+                    {Math.max(0, accesosReservablesGrupo(g))} restantes
                   </div>
                 </div>
               ))
@@ -222,11 +223,7 @@ export default function Home() {
                   {active.accesosUsados} / {active.accesos}
                 </div>
                 <div className="stat-sub">
-                  {Math.max(
-                    0,
-                    active.accesos + active.accesosExtra - active.accesosUsados
-                  )}{' '}
-                  restantes
+                  {Math.max(0, accesosReservables(active))} restantes
                 </div>
                 <span className="badge ok" style={{ marginTop: 12 }}>
                   {active.modalidad === 'HORARIO_FIJO' ? 'Horario fijo' : 'Pack'}
