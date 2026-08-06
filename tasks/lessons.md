@@ -18,3 +18,12 @@
   solo estaba en origin/main.
 - Regla: ante un bug reportado sobre trabajo reciente, correr `git fetch` y
   mirar origin/main en webapp Y en Clicnet antes de razonar sobre el código local.
+
+## Overrides de .card necesitan especificidad compuesta
+- Qué pasó: el botón QR de acceso (`.home-qr-btn`) seteaba `background: var(--ink)`
+  pero renderizó blanco con texto invisible. `.card` (globals.css) tiene la misma
+  especificidad y se bundlea DESPUÉS de Home.css → su `background: var(--surface)`
+  ganaba por orden.
+- Regla: al override-ear una clase base compartida (`.card`, `.btn-*`) usar
+  selector compuesto (`.card.home-qr-btn`) para ganar la especificidad, nunca
+  confiar en el orden de carga entre archivos CSS.

@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -26,5 +27,11 @@ export default defineConfig({
   },
   preview: {
     allowedHosts: previewHosts[brand] ?? previewHosts.clic,
+  },
+  test: {
+    environment: 'node',
+    // El formateo de fechas depende de la TZ: se fija la de los usuarios para
+    // que los tests sean deterministicos corran donde corran.
+    setupFiles: ['./src/test/setup-tz.ts'],
   },
 });
