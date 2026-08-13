@@ -162,6 +162,46 @@
   cursor: not-allowed;
 }
 
+.consent-footer {
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.consent-footer-hint {
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+.consent-logout {
+  background: transparent;
+  border: none;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--taupe-dark);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 6px 4px;
+}
+.consent-logout:hover {
+  color: var(--ink);
+}
+
+.consent-card-error {
+  text-align: center;
+}
+.consent-error-msg {
+  font-size: 12px;
+  color: var(--ink-mute);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
 .full-loader {
   min-height: 100vh;
   display: flex;
