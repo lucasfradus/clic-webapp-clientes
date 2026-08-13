@@ -50,6 +50,7 @@ const INIT_SALUD: DatosSalud = {
 export default function Consentimiento() {
   const perfil = useAuth((s) => s.perfil);
   const fetchPerfil = useAuth((s) => s.fetchPerfil);
+  const logout = useAuth((s) => s.logout);
   const navigate = useNavigate();
 
   const [data, setData] = useState<ConsentData | null>(null);
@@ -119,8 +120,27 @@ export default function Consentimiento() {
     }
   }
 
+  function cerrarSesion() {
+    logout();
+    navigate('/login', { replace: true });
+  }
+
+  const salir = (
+    <button className="consent-logout" onClick={cerrarSesion} type="button">
+      Cerrar sesión
+    </button>
+  );
+
   if (loading) return <div className="full-loader">Cargando…</div>;
-  if (!data) return <div className="full-loader">No se pudo cargar</div>;
+  if (!data)
+    return (
+      <div className="consent-page">
+        <div className="consent-card consent-card-error">
+          <p className="consent-error-msg">No se pudo cargar</p>
+          {salir}
+        </div>
+      </div>
+    );
 
   return (
     <div className="consent-page">
@@ -363,6 +383,13 @@ export default function Consentimiento() {
         >
           {submitting ? 'Enviando…' : 'Firmar y continuar'}
         </button>
+
+        <div className="consent-footer">
+          <span className="consent-footer-hint">
+            ¿No sos {perfil?.nombre ?? 'vos'}?
+          </span>
+          {salir}
+        </div>
       </div>
     </div>
   );
