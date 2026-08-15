@@ -20,7 +20,9 @@ useAuth.getState().bootstrap();
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrandProvider>
-      <BrowserRouter>
+      {/* BASE_URL sale del `base` de Vite: '/' en el deploy propio y
+          '/mi-cuenta/' cuando la web nueva sirve el portal por rewrite. */}
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <App />
       </BrowserRouter>
     </BrandProvider>
