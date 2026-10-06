@@ -54,4 +54,6 @@ export interface BrandConfig {
   fonts: BrandFonts;
   logos: BrandLogos;
   text: BrandText;
+  /** Link a la app en el App Store. Si está, el login muestra el banner de descarga. */
+  appStoreUrl?: string;
 }
