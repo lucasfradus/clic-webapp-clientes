@@ -92,3 +92,43 @@
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.login-app-banner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: -12px -8px 28px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: var(--ink);
+  color: var(--surface);
+  text-decoration: none;
+  transition: opacity 0.15s;
+}
+.login-app-banner:hover {
+  opacity: 0.9;
+}
+.login-app-banner-icon {
+  display: flex;
+  flex-shrink: 0;
+}
+.login-app-banner-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.login-app-banner-text strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.login-app-banner-text span {
+  opacity: 0.75;
+}
+.login-app-banner-arrow {
+  flex-shrink: 0;
+  font-size: 16px;
+}
