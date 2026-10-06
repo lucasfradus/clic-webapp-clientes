@@ -53,24 +53,37 @@ export default function Login() {
   return (
     <div className="login-page">
       <div className="login-card">
-        {brand.appStoreUrl && (
-          <a
-            href={brand.appStoreUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="login-app-banner"
-          >
-            <span className="login-app-banner-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+        {brand.appLinks && (
+          <div className="login-app-banner">
+            <div className="login-app-banner-text">
+              <strong>¡Ya está la app de {brand.text.name}!</strong>
+              <span>Descargala para reservar desde tu celular</span>
+            </div>
+            <div className="login-app-banner-stores">
+              <a
+                href={brand.appLinks.ios}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="login-app-store"
+              >
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
                 <path d="M16.37 12.6c-.02-2.3 1.88-3.4 1.96-3.46-1.07-1.56-2.73-1.78-3.32-1.8-1.41-.14-2.76.83-3.47.83-.72 0-1.82-.81-2.99-.79-1.54.02-2.96.9-3.75 2.27-1.6 2.78-.41 6.89 1.15 9.14.76 1.1 1.67 2.34 2.86 2.3 1.15-.05 1.58-.74 2.97-.74 1.38 0 1.77.74 2.98.72 1.23-.02 2.01-1.12 2.76-2.23.87-1.28 1.23-2.52 1.25-2.58-.03-.01-2.39-.92-2.41-3.66zM14.1 5.86c.63-.77 1.06-1.83.94-2.89-.91.04-2.01.61-2.66 1.37-.58.67-1.1 1.76-.96 2.8 1.01.08 2.05-.52 2.68-1.28z" />
-              </svg>
-            </span>
-            <span className="login-app-banner-text">
-              <strong>¡Ya está la app en el App Store!</strong>
-              <span>Descargala para reservar desde tu iPhone</span>
-            </span>
-            <span className="login-app-banner-arrow" aria-hidden="true">→</span>
-          </a>
+                </svg>
+                App Store
+              </a>
+              <a
+                href={brand.appLinks.android}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="login-app-store"
+              >
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
+                  <path d="M4.6 2.2c-.3.3-.5.8-.5 1.4v16.8c0 .6.2 1.1.5 1.4l9.4-9.8-9.4-9.8zm10.6 8.6 2.9-3L6.5 1.1c-.4-.2-.8-.3-1.1-.2l9.8 9.9zm0 2.4-9.8 9.9c.3.1.7 0 1.1-.2l11.6-6.7-2.9-3zm3.9-4.7-3.1 3.5 3.1 3.5 3.2-1.8c1-.6 1-1.8 0-2.4l-3.2-1.8z" />
+                </svg>
+                Google Play
+              </a>
+            </div>
+          </div>
         )}
         <img src={brand.logos.logoBlack} alt={brand.text.fullName} className="login-logo" />
         <div className="italiana login-tagline">{brand.text.tagline}</div>

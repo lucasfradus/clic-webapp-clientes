@@ -44,7 +44,10 @@ const clic: BrandConfig = {
     fallbackQuote: 'Tu pilates empieza acá.',
     fallbackCta: 'Consultá con tu sede',
   },
-  appStoreUrl: 'https://apps.apple.com/ar/app/clic-fitness/id6806391392',
+  appLinks: {
+    ios: 'https://apps.apple.com/ar/app/clic-fitness/id6806391392',
+    android: 'https://play.google.com/store/apps/details?id=com.clicestudio.app',
+  },
 };
 
 export default clic;
