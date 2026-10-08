@@ -153,6 +153,18 @@ export default function Home() {
         </Link>
       )}
 
+      {/* Consultorio: solo si su plan lo habilita. En móvil es la entrada (la tab bar no lo tiene). */}
+      {perfil?.consultorioDisponible && (
+        <Link to="/consultorio" className="card home-qr-btn">
+          <span className="home-qr-icon" aria-hidden="true">✚</span>
+          <span className="home-qr-text">
+            <span className="home-qr-title">Consultorio</span>
+            <span className="home-qr-sub">Sacá tu cita con un profesional</span>
+          </span>
+          <span className="home-qr-caret" aria-hidden="true">→</span>
+        </Link>
+      )}
+
       {/* Hero: próxima clase */}
       {proxima ? (
         <Link to="/agenda" className="card-dark home-hero home-hero-link">

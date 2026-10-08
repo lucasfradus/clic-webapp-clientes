@@ -1,3 +1,20 @@
+# Consultorio: citas con profesionales (nutrición, kinesio)
+
+Backend: Clicnet `feat/consultorio-etapa2` (`/api/v1/consultorio`, `/huecos`, `/citas`; `perfil.consultorioDisponible`).
+Reemplaza el link de Calu: `https://clientes.clicfit.ar/consultorio` (o `/mi-cuenta/consultorio` detrás del rewrite).
+
+- [x] Tipos + `src/api/consultorio.ts` (+ `PATCH` en `apiFetch`)
+- [x] `src/pages/Consultorio.tsx`: tus citas (cambiar horario / cancelar hasta N h antes), sacar una cita por
+      servicio con "te queda 1 incluida en octubre", tira de días hasta la ventana y horarios libres
+- [x] Solo incluidas: las particulares se reservan en recepción (se abren con la seña, etapa 3)
+- [x] Volver al link después del login (`src/lib/volverA.ts`, sessionStorage); el aviso de novedades ya no
+      redirige si se entra por un link directo
+- [x] Ítem en el Sidebar y card en el Home, solo con `consultorioDisponible` (la tab bar móvil ya tiene 5)
+- [x] `VITE_API_PROXY_TARGET` para probar contra un Clicnet local
+- [x] Verificado con Playwright contra Clicnet local (ver PR)
+- Sin tests unitarios: `main` todavía no tiene vitest como dependencia (lo trae una rama sin mergear) y un
+  `.test.ts` rompería el `tsc -b` del deploy.
+
 # QR de acceso en la webapp de clientes
 
 Backend Clicnet ya listo: `GET /api/v1/control-acceso/qr` → `{ qrValue }` y el flag

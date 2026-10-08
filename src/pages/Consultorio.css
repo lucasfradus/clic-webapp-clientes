@@ -1,0 +1,123 @@
+/* Consultorio: reusa la tira de días y las filas de Agenda.css. */
+
+.consultorio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.card.consultorio-servicio {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.consultorio-servicio-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.consultorio-servicio-nombre {
+  font-size: 24px;
+  line-height: 1;
+}
+.consultorio-meta {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-top: 6px;
+}
+
+.consultorio-prestaciones {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.consultorio-prestacion {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 100px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.consultorio-prestacion.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+
+.consultorio-picker .week-nav {
+  margin-bottom: 16px;
+}
+.consultorio-picker .week-nav-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.consultorio-huecos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
+}
+.consultorio-hueco {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.consultorio-hueco:hover {
+  background: var(--beige-soft);
+}
+.consultorio-hueco-hora {
+  font-size: 20px;
+  line-height: 1;
+}
+.consultorio-hueco-profe {
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+
+.consultorio-empty {
+  font-size: 13px;
+  color: var(--taupe-dark);
+  padding: 8px 0;
+}
+.consultorio-nota {
+  font-size: 13px;
+  color: var(--ink-mute);
+  margin: 0;
+}
+.consultorio-nota.subtle {
+  font-size: 11px;
+}
+
+.class-row.consultorio-cita {
+  cursor: default;
+}
+.class-row.consultorio-cita:hover {
+  background: transparent;
+}
+.consultorio-acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.consultorio-reprogramar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}

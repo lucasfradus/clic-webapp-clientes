@@ -16,6 +16,7 @@ import Politicas from './pages/Politicas';
 import AutorizacionMenores from './pages/AutorizacionMenores';
 import AutorizacionMenoresForm from './pages/AutorizacionMenoresForm';
 import Toaster from './components/ui/Toaster';
+import Consultorio from './pages/Consultorio';
 
 export default function App() {
   return (
@@ -53,6 +54,8 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/agenda" element={<Agenda />} />
+            {/* Link compartible (reemplaza al de Calu): /consultorio */}
+            <Route path="/consultorio" element={<Consultorio />} />
             <Route path="/cuenta" element={<Cuenta />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/perfil/editar" element={<EditarPerfil />} />

@@ -26,7 +26,8 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: apiTargets[brand] ?? apiTargets.clic,
+        // VITE_API_PROXY_TARGET=http://localhost:3010 para probar contra un Clicnet local.
+        target: process.env.VITE_API_PROXY_TARGET || apiTargets[brand] || apiTargets.clic,
         changeOrigin: true,
         secure: true,
       },

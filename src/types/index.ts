@@ -73,8 +73,48 @@ export interface Perfil {
   autorizacionMenoresEstado?: AutorizacionMenoresEstado | null;
   autorizacionMenoresMotivoRechazo?: string | null;
   sede: { id: number; nombre: string };
+  /** Su plan lo habilita a sacar citas de consultorio (nutrición, kinesio). Ausente en backends viejos. */
+  consultorioDisponible?: boolean;
   suscripcionActiva: SuscripcionActiva | null;
   ultimosPagos: UltimoPago[];
+}
+
+// ─── Consultorio (citas con profesionales) ───
+
+export interface ServicioConsultorio {
+  servicioId: number;
+  nombre: string;
+  sede: { id: number; nombre: string; direccion: string | null };
+  horasCancelacion: number;
+  diasReservaAnticipada: number;
+  prestaciones: { id: number; nombre: string; duracionMinutos: number }[];
+  /** Incluidas por mes según su plan (0 = solo particulares, en recepción). */
+  incluidasPorMes: number;
+  /** Mes actual y siguiente: cuántas incluidas le quedan. `desde` es YYYY-MM-DD. */
+  meses: { mes: string; desde: string; disponibles: number }[];
+}
+
+export interface HuecoConsultorio {
+  franjaId: number;
+  inicio: string;
+  fin: string;
+  modalidad: 'INCLUIDA' | 'PARTICULAR';
+  profesional: string;
+}
+
+export interface CitaConsultorio {
+  id: number;
+  inicio: string;
+  fin: string;
+  estado: string;
+  modalidad: 'INCLUIDA' | 'PARTICULAR';
+  prestacion: { id: number; nombre: string };
+  servicio: string;
+  profesional: string;
+  sede: { id: number; nombre: string; direccion: string | null };
+  consultorio: string | null;
+  /** Hasta cuándo puede cancelar o reprogramar (ISO). */
+  cancelableHasta: string;
 }
 
 export type SuscripcionModalidad = 'HORARIO_FIJO' | 'PACK';
