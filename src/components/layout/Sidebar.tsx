@@ -8,6 +8,8 @@ import './Sidebar.css';
 const navItems = [
   { to: '/', label: 'Home', end: true },
   { to: '/agenda', label: 'Agenda' },
+  // Solo si su profe le asignó una rutina (perfil.musculacionDisponible).
+  { to: '/rutina', label: 'Mi rutina', soloMusculacion: true },
   // Solo si su plan lo habilita (perfil.consultorioDisponible).
   { to: '/consultorio', label: 'Consultorio', soloConsultorio: true },
   { to: '/cuenta', label: 'Mi cuenta' },
@@ -17,7 +19,9 @@ const navItems = [
 
 export default function Sidebar() {
   const perfil = useAuth((s) => s.perfil);
-  const items = navItems.filter((i) => !i.soloConsultorio || perfil?.consultorioDisponible);
+  const items = navItems.filter(
+    (i) => (!i.soloConsultorio || perfil?.consultorioDisponible) && (!i.soloMusculacion || perfil?.musculacionDisponible)
+  );
   const brand = useBrand();
   const fullName = perfil
     ? `${perfil.nombre} ${perfil.apellido}`.trim()

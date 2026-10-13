@@ -9,6 +9,8 @@ import Cuenta from './pages/Cuenta';
 import Perfil from './pages/Perfil';
 import Novedades from './pages/Novedades';
 import Acceso from './pages/Acceso';
+import Rutina from './pages/Rutina';
+import Entrenar from './pages/Entrenar';
 import EditarPerfil from './pages/EditarPerfil';
 import CambiarPassword from './pages/CambiarPassword';
 import ConsentimientoFirmado from './pages/ConsentimientoFirmado';
@@ -47,6 +49,8 @@ export default function App() {
         {/* Credencial de acceso: fullscreen, sin layout (tab bar) para el molinete */}
         <Route element={<ProtectedRoute />}>
           <Route path="/acceso" element={<Acceso />} />
+          {/* Entrenamiento de musculación: fullscreen para usarlo en el gimnasio */}
+          <Route path="/rutina/entrenar/:diaKey" element={<Entrenar />} />
         </Route>
 
         {/* Área protegida normal */}
@@ -66,6 +70,7 @@ export default function App() {
             <Route path="/perfil/autorizacion-menores" element={<AutorizacionMenores />} />
             <Route path="/perfil/autorizacion-menores/enviar" element={<AutorizacionMenoresForm />} />
             <Route path="/novedades" element={<Novedades />} />
+            <Route path="/rutina" element={<Rutina />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Route>

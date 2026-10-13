@@ -1,0 +1,163 @@
+.rutina {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.rutina-nombre {
+  margin-top: 6px;
+  font-size: 20px;
+  color: var(--ink-mute);
+}
+
+.rutina-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.rutina-vacia-titulo {
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1.2;
+}
+.rutina-vacia-sub {
+  margin-top: 8px;
+  color: rgba(253, 251, 250, 0.6);
+}
+
+/* Chips de días: scroll horizontal en el teléfono si son muchos. */
+.rutina-dias {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.rutina-dia {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 76px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line-soft);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.rutina-dia.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--surface);
+}
+.rutina-dia-hoy {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--taupe-dark);
+}
+.rutina-dia.active .rutina-dia-hoy {
+  color: var(--taupe);
+}
+
+.rutina-bloque {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.rutina-bloque-nombre {
+  margin-top: 4px;
+  font-size: 17px;
+  font-weight: 600;
+}
+.rutina-bloque-meta {
+  margin-top: 2px;
+  color: var(--ink-mute);
+  font-size: 12px;
+}
+
+.rutina-ejercicios {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+.rutina-ejercicio {
+  padding: 12px 0;
+  border-top: 1px solid var(--line-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.rutina-ejercicio .video-ejercicio-btn {
+  margin-left: 34px;
+}
+.rutina-ejercicio-fila {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+}
+.rutina-ejercicio-num {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--line);
+  color: var(--ink-mute);
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rutina-ejercicio-texto {
+  min-width: 0;
+}
+.rutina-ejercicio-nombre {
+  font-size: 14px;
+  font-weight: 500;
+}
+.rutina-ejercicio-ind {
+  margin-top: 2px;
+  color: var(--ink-mute);
+}
+.rutina-ejercicio-pesos {
+  margin-top: 4px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 11px;
+  color: var(--taupe-dark);
+}
+
+/* El botón queda pegado abajo mientras se recorre la rutina (sobre la tab bar en el teléfono). */
+.rutina-cta {
+  position: sticky;
+  bottom: 16px;
+  display: flex;
+  justify-content: center;
+  padding-top: 4px;
+}
+.rutina-cta-btn {
+  display: inline-block;
+  padding: 16px 32px;
+  font-size: 11px;
+  box-shadow: 0 8px 24px rgba(44, 47, 52, 0.18);
+}
+
+@media (max-width: 768px) {
+  .rutina-cta {
+    bottom: 86px;
+  }
+  .rutina-cta-btn {
+    width: 100%;
+    text-align: center;
+  }
+}

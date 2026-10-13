@@ -23,6 +23,15 @@ export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
 }
 
+/**
+ * URL absoluta para una ruta que devuelve el backend (ej. `/api/v1/musculacion/video?...`).
+ * En producción el backend está en otro dominio (VITE_API_BASE_URL absoluta); en dev,
+ * con la base relativa, queda en el mismo origen y pasa por el proxy de Vite.
+ */
+export function urlApi(path: string): string {
+  return new URL(path, new URL(BASE_URL, window.location.origin)).toString();
+}
+
 type Options = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;

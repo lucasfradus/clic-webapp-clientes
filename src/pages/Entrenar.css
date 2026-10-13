@@ -1,0 +1,247 @@
+/* Vista de entrenamiento: pantalla completa, sin menú, pensada para el teléfono en el gimnasio. */
+.entrenar {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--bg);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.entrenar-centro {
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.entrenar-msg {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  max-width: 320px;
+  color: var(--ink-mute);
+}
+
+.entrenar-cerrar {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: 12px;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: transparent;
+  color: var(--ink);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.entrenar-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+  /* Alineado con la columna de contenido (max 640px centrada) en pantallas anchas. */
+  padding: max(16px, env(safe-area-inset-top)) 64px 12px max(20px, calc((100% - 640px) / 2 + 20px));
+  border-bottom: 1px solid var(--line-soft);
+}
+.entrenar-head .entrenar-cerrar {
+  top: max(8px, env(safe-area-inset-top));
+}
+.entrenar-titulo {
+  font-family: var(--font-display, sans-serif);
+  font-size: 24px;
+  font-weight: 300;
+  margin-top: 2px;
+}
+.entrenar-progreso {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+}
+.entrenar-punto {
+  flex: 1;
+  max-width: 64px;
+  height: 6px;
+  border-radius: 6px;
+  border: none;
+  background: var(--line);
+  cursor: pointer;
+  padding: 0;
+}
+.entrenar-punto.hecho {
+  background: var(--sage, #7d8f72);
+}
+.entrenar-punto.actual {
+  outline: 2px solid var(--taupe);
+  outline-offset: 2px;
+}
+
+.entrenar-cuerpo {
+  flex: 1;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 20px 120px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.entrenar-bloque-nombre {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 600;
+}
+.entrenar-bloque-meta {
+  color: var(--ink-mute);
+}
+
+.entrenar-ejercicio {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.entrenar-ejercicio-nombre {
+  font-size: 16px;
+  font-weight: 600;
+}
+.entrenar-ejercicio-ind {
+  color: var(--ink-mute);
+  font-size: 13px;
+}
+
+.entrenar-peso {
+  width: 100%;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line-soft);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 4px 12px;
+}
+.entrenar-peso-label {
+  font-size: 12px;
+  font-weight: 600;
+}
+.entrenar-peso-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-self: end;
+}
+.entrenar-peso-input input {
+  width: 96px;
+  height: 44px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+.entrenar-peso-input input:focus {
+  outline: 2px solid var(--taupe);
+  outline-offset: 1px;
+}
+.entrenar-peso-ref {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--taupe-dark);
+}
+
+.entrenar-acciones {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--line-soft);
+}
+.entrenar-principal {
+  flex: 1;
+  max-width: 320px;
+  padding: 16px 20px;
+  font-size: 11px;
+}
+.entrenar-secundario {
+  border: 1px solid var(--line-soft);
+  background: transparent;
+  color: var(--ink);
+  border-radius: 100px;
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.entrenar-secundario:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.entrenar-fin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding-top: 24px;
+}
+.entrenar-fin-icono {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--sage-bg, #e5ebe0);
+  color: var(--sage, #7d8f72);
+  font-size: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.entrenar-fin-sub {
+  color: var(--ink-mute);
+}
+.entrenar-resumen {
+  list-style: none;
+  width: 100%;
+  margin-top: 8px;
+  background: var(--surface);
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  text-align: left;
+}
+.entrenar-resumen li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-top: 1px solid var(--line-soft);
+}
+.entrenar-resumen li:first-child {
+  border-top: none;
+}
+.entrenar-resumen-kg {
+  font-weight: 600;
+  white-space: nowrap;
+}
+.entrenar-fin-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.entrenar-link {
+  border: none;
+  background: none;
+  color: var(--ink-mute);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 12px;
+}
