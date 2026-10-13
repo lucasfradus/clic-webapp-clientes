@@ -17,5 +17,8 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // Los tests los corre vitest. El build de Railway instala sin devDependencies
+  // (no hay `vitest`), así que `tsc -b` no tiene que compilarlos.
+  "exclude": ["src/**/*.test.ts"]
 }
