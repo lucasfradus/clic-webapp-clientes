@@ -281,3 +281,43 @@
   color: var(--taupe);
   flex-shrink: 0;
 }
+
+/* Atajos de musculación: "Mi rutina" ancho y "Novedades" angosto al lado. */
+.home-atajos {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.card.home-atajo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+}
+.home-atajo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+.home-atajo-titulo {
+  font-size: 15px;
+  font-weight: 600;
+}
+.home-atajo-sub {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.home-atajo-caret {
+  font-size: 18px;
+  color: var(--taupe);
+  flex-shrink: 0;
+}
+.home-atajo-chico .home-atajo-titulo {
+  font-size: 13px;
+  font-weight: 500;
+}

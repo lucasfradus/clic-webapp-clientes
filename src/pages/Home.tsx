@@ -165,6 +165,24 @@ export default function Home() {
         </Link>
       )}
 
+      {/* Musculación: acceso a la rutina. En el teléfono la pestaña News pasa a ser
+          Rutina para estos socios, así que las novedades quedan a mano desde acá. */}
+      {perfil?.musculacionDisponible && (
+        <div className="home-atajos">
+          <Link to="/rutina" className="card home-atajo">
+            <span className="home-atajo-texto">
+              <span className="home-atajo-titulo">Mi rutina</span>
+              <span className="home-atajo-sub">Musculación · videos y pesos</span>
+            </span>
+            <span className="home-atajo-caret" aria-hidden="true">→</span>
+          </Link>
+          <Link to="/novedades" className="card home-atajo home-atajo-chico">
+            <span className="home-atajo-titulo">Novedades</span>
+            <span className="home-atajo-caret" aria-hidden="true">→</span>
+          </Link>
+        </div>
+      )}
+
       {/* Hero: próxima clase */}
       {proxima ? (
         <Link to="/agenda" className="card-dark home-hero home-hero-link">
