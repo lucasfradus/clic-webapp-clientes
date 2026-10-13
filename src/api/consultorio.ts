@@ -1,5 +1,5 @@
 import { apiFetch } from './client';
-import type { CitaConsultorio, HuecoConsultorio, ServicioConsultorio } from '../types';
+import type { CitaConsultorio, EstadoSena, HuecoConsultorio, InicioSena, ServicioConsultorio } from '../types';
 
 /** Servicios que el socio puede reservar (nutrición, kinesio) con sus incluidas del mes. */
 export function getServiciosConsultorio() {
@@ -24,6 +24,19 @@ export function reservarCita(body: { prestacionId: number; franjaId: number; ini
 
 export function reprogramarCita(body: { citaId: number; franjaId: number; inicio: string }) {
   return apiFetch<{ message: string }>('/consultorio/citas', { method: 'PATCH', body });
+}
+
+/**
+ * Consulta particular: retiene el horario 15 minutos y devuelve el link de MP para
+ * pagar la seña. `volverA`: a dónde vuelve MP (una URL de esta web).
+ */
+export function iniciarSena(body: { prestacionId: number; franjaId: number; inicio: string; volverA: string }) {
+  return apiFetch<InicioSena>('/consultorio/senas', { method: 'POST', body });
+}
+
+/** Estado de la seña al volver de MP (el backend consulta a MP si sigue pendiente). */
+export function getEstadoSena(solicitudId: number) {
+  return apiFetch<EstadoSena>(`/consultorio/senas/${solicitudId}`);
 }
 
 export function cancelarCita(citaId: number) {

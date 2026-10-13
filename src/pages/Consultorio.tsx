@@ -1,21 +1,37 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   cancelarCita,
   getCitas,
+  getEstadoSena,
   getHuecos,
   getServiciosConsultorio,
+  iniciarSena,
   reprogramarCita,
   reservarCita,
 } from '../api/consultorio';
 import { ApiError } from '../api/client';
 import { toast } from '../store/toast';
-import type { CitaConsultorio, HuecoConsultorio, ServicioConsultorio } from '../types';
-import { diasReservables, fechaLargaAR, horaAR, partesDia, puedeModificar, ymdAR } from '../lib/consultorio';
+import type { CitaConsultorio, EstadoSena, HuecoConsultorio, ServicioConsultorio } from '../types';
+import {
+  diasReservables,
+  fechaLargaAR,
+  guardarSenaEnCurso,
+  horaAR,
+  olvidarSenaEnCurso,
+  partesDia,
+  puedeModificar,
+  senaDeLaVuelta,
+  ymdAR,
+} from '../lib/consultorio';
+import { formatARS } from '../lib/date';
 import './Agenda.css';
 import './Consultorio.css';
 
+type Prestacion = ServicioConsultorio['prestaciones'][number];
+
 type Confirmacion =
-  | { kind: 'reservar'; servicio: ServicioConsultorio; prestacionId: number; hueco: HuecoConsultorio }
+  | { kind: 'reservar'; servicio: ServicioConsultorio; prestacion: Prestacion; hueco: HuecoConsultorio }
   | { kind: 'reprogramar'; cita: CitaConsultorio; hueco: HuecoConsultorio }
   | { kind: 'cancelar'; cita: CitaConsultorio };
 
@@ -29,12 +45,18 @@ function ElegirHorario({
   prestacionId,
   diasAdelante,
   citaId,
+  modalidad,
+  sena,
   onElegir,
 }: {
   sedeId: number;
   prestacionId: number;
   diasAdelante: number;
   citaId?: number;
+  /** Al reprogramar: una incluida solo pasa a otra incluida y una particular a otra particular. */
+  modalidad?: HuecoConsultorio['modalidad'];
+  /** Seña de los horarios particulares (para mostrarla en el botón). */
+  sena?: number;
   onElegir: (h: HuecoConsultorio) => void;
 }) {
   const dias = useMemo(() => diasReservables(ymdAR(new Date()), diasAdelante), [diasAdelante]);
@@ -82,27 +104,34 @@ function ElegirHorario({
 
       {huecos === null ? (
         <div className="consultorio-empty">Buscando horarios…</div>
-      ) : huecos.length === 0 ? (
+      ) : huecos.filter((h) => !modalidad || h.modalidad === modalidad).length === 0 ? (
         <div className="consultorio-empty">No hay horarios libres este día.</div>
       ) : (
         <div className="consultorio-huecos">
-          {huecos.map((h) => (
-            <button key={`${h.franjaId}-${h.inicio}`} className="consultorio-hueco" onClick={() => onElegir(h)}>
-              <span className="italiana consultorio-hueco-hora">{horaAR(h.inicio)}</span>
-              <span className="consultorio-hueco-profe">{h.profesional}</span>
-            </button>
-          ))}
+          {huecos
+            .filter((h) => !modalidad || h.modalidad === modalidad)
+            .map((h) => (
+              <button key={`${h.franjaId}-${h.inicio}`} className="consultorio-hueco" onClick={() => onElegir(h)}>
+                <span className="italiana consultorio-hueco-hora">{horaAR(h.inicio)}</span>
+                <span className="consultorio-hueco-profe">{h.profesional}</span>
+                <span className={'consultorio-hueco-tipo' + (h.modalidad === 'PARTICULAR' ? ' particular' : '')}>
+                  {h.modalidad === 'INCLUIDA' ? 'Incluida' : sena ? `Particular · seña ${formatARS(sena)}` : 'Particular'}
+                </span>
+              </button>
+            ))}
         </div>
       )}
     </div>
   );
 }
 
-function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; onElegir: (prestacionId: number, h: HuecoConsultorio) => void }) {
+function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; onElegir: (p: Prestacion, h: HuecoConsultorio) => void }) {
   const [prestacionId, setPrestacionId] = useState(servicio.prestaciones[0]?.id);
   const [abierto, setAbierto] = useState(false);
   const mesActual = servicio.meses[0];
   const mesSiguiente = servicio.meses[1];
+  const prestacion = servicio.prestaciones.find((p) => p.id === prestacionId);
+  const conParticulares = servicio.prestaciones.some((p) => p.precioParticular !== null);
 
   return (
     <div className="card consultorio-servicio">
@@ -120,8 +149,8 @@ function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; o
         )}
       </div>
 
-      {servicio.incluidasPorMes === 0 ? (
-        <p className="consultorio-nota">Tu plan no incluye consultas de {servicio.nombre.toLowerCase()}. Las consultas particulares se reservan en recepción.</p>
+      {servicio.incluidasPorMes === 0 && !conParticulares ? (
+        <p className="consultorio-nota">Tu plan no incluye consultas de {servicio.nombre.toLowerCase()}. Consultá en recepción.</p>
       ) : (
         <>
           {mesActual?.disponibles === 0 && mesSiguiente && mesSiguiente.disponibles > 0 && (
@@ -136,16 +165,18 @@ function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; o
                   onClick={() => setPrestacionId(p.id)}
                 >
                   {p.nombre} · {p.duracionMinutos} min
+                  {p.precioParticular !== null && servicio.incluidasPorMes === 0 ? ` · ${formatARS(p.precioParticular)}` : ''}
                 </button>
               ))}
             </div>
           )}
-          {abierto && prestacionId ? (
+          {abierto && prestacion ? (
             <ElegirHorario
               sedeId={servicio.sede.id}
-              prestacionId={prestacionId}
+              prestacionId={prestacion.id}
               diasAdelante={servicio.diasReservaAnticipada}
-              onElegir={(h) => onElegir(prestacionId, h)}
+              sena={prestacion.sena}
+              onElegir={(h) => onElegir(prestacion, h)}
             />
           ) : (
             <button className="btn-taupe" onClick={() => setAbierto(true)}>
@@ -153,9 +184,76 @@ function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; o
             </button>
           )}
           <p className="consultorio-nota subtle">
-            Podés cancelar o cambiar la cita hasta {servicio.horasCancelacion} h antes. Las consultas particulares se reservan en recepción.
+            Podés cancelar o cambiar la cita hasta {servicio.horasCancelacion} h antes.
+            {conParticulares &&
+              ' Los horarios particulares se pagan aparte: una seña online a Clic y el resto al profesional el día de la consulta.'}
           </p>
         </>
+      )}
+    </div>
+  );
+}
+
+/** Volviendo de MP: espera a que se acredite la seña (el webhook o el backend, que le pregunta a MP). */
+function useVueltaDeSena(onConfirmada: () => void) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [solicitudId] = useState(() => senaDeLaVuelta(location.search));
+  const [estado, setEstado] = useState<EstadoSena | null>(null);
+  const [agotado, setAgotado] = useState(false);
+
+  useEffect(() => {
+    if (!solicitudId) return;
+    let vigente = true;
+    let intentos = 0;
+    let timer: ReturnType<typeof setTimeout>;
+    const consultar = async () => {
+      try {
+        const e = await getEstadoSena(solicitudId);
+        if (!vigente) return;
+        setEstado(e);
+        if (e.estado !== 'PENDIENTE') {
+          olvidarSenaEnCurso();
+          // Saca los parámetros de MP de la URL: recargar no vuelve a mostrar el cartel.
+          navigate('/consultorio', { replace: true });
+          if (e.estado === 'PROCESADA') onConfirmada();
+          return;
+        }
+      } catch {
+        /* reintenta */
+      }
+      if (++intentos >= 20) setAgotado(true);
+      else timer = setTimeout(consultar, 3000);
+    };
+    void consultar();
+    return () => {
+      vigente = false;
+      clearTimeout(timer);
+    };
+  }, [solicitudId, navigate, onConfirmada]);
+
+  return solicitudId ? { estado, agotado } : null;
+}
+
+function CartelSena({ vuelta, onCerrar }: { vuelta: { estado: EstadoSena | null; agotado: boolean }; onCerrar: () => void }) {
+  const e = vuelta.estado?.estado;
+  const texto =
+    e === 'PROCESADA'
+      ? '¡Listo! Recibimos la seña y tu cita quedó confirmada. Te mandamos un mail.'
+      : e === 'SIN_LUGAR'
+        ? 'Recibimos tu seña, pero el horario se ocupó mientras pagabas. Recepción te va a contactar para darte otro: la seña no se pierde.'
+        : e === 'VENCIDA'
+          ? 'No recibimos el pago de la seña a tiempo y el horario se liberó. Si te lo cobraron, avisá en recepción.'
+          : vuelta.agotado
+            ? 'Todavía no se acreditó el pago. Si te lo cobraron, en unos minutos la cita va a aparecer acá.'
+            : 'Estamos confirmando el pago de la seña…';
+  return (
+    <div className={'card consultorio-cartel' + (e === 'PROCESADA' ? ' ok' : e === 'SIN_LUGAR' || e === 'VENCIDA' ? ' alerta' : '')}>
+      <span>{texto}</span>
+      {e && e !== 'PENDIENTE' && (
+        <button className="modal-secondary" onClick={onCerrar}>
+          Cerrar
+        </button>
       )}
     </div>
   );
@@ -186,14 +284,26 @@ export default function Consultorio() {
     void cargar();
   }, [cargar]);
 
+  const vuelta = useVueltaDeSena(cargar);
+  const [cartelCerrado, setCartelCerrado] = useState(false);
+
   const servicioDeCita = (c: CitaConsultorio) => servicios?.find((s) => s.prestaciones.some((p) => p.id === c.prestacion.id));
 
   async function confirmar() {
     if (!confirm) return;
     setBusy(true);
     try {
-      if (confirm.kind === 'reservar') {
-        await reservarCita({ prestacionId: confirm.prestacionId, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio });
+      if (confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR') {
+        const volverA = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/consultorio`;
+        const r = await iniciarSena({ prestacionId: confirm.prestacion.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio, volverA });
+        if ('initPoint' in r) {
+          guardarSenaEnCurso(r.solicitudId);
+          window.location.assign(r.initPoint);
+          return; // queda "Enviando…" hasta que carga MP
+        }
+        toast.success('¡Listo! Tu cita quedó confirmada. Te mandamos un mail.');
+      } else if (confirm.kind === 'reservar') {
+        await reservarCita({ prestacionId: confirm.prestacion.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio });
         toast.success('¡Listo! Tu cita quedó confirmada. Te mandamos un mail.');
       } else if (confirm.kind === 'reprogramar') {
         await reprogramarCita({ citaId: confirm.cita.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio });
@@ -224,6 +334,8 @@ export default function Consultorio() {
         </div>
       </header>
 
+      {vuelta && !cartelCerrado && <CartelSena vuelta={vuelta} onCerrar={() => setCartelCerrado(true)} />}
+
       {citas.length > 0 && (
         <section className="consultorio-section">
           <div className="tag-label">Tus citas</div>
@@ -240,6 +352,13 @@ export default function Consultorio() {
                   <div className="class-body">
                     <div className="class-name italiana">{c.servicio} · {c.prestacion.nombre}</div>
                     <div className="class-meta">{[c.profesional, c.sede.nombre, c.consultorio].filter(Boolean).join(' · ')}</div>
+                    {c.modalidad === 'PARTICULAR' && c.precio !== null && (
+                      <div className="class-meta">
+                        {c.sena
+                          ? `Seña pagada ${formatARS(c.sena)} · al profesional ${formatARS(c.precio - c.sena)}`
+                          : `Particular · al profesional ${formatARS(c.precio)}`}
+                      </div>
+                    )}
                     {modificable ? (
                       <div className="consultorio-acciones">
                         {servicio && (
@@ -281,6 +400,7 @@ export default function Consultorio() {
               prestacionId={reprogramando.prestacion.id}
               diasAdelante={servicioDeCita(reprogramando)!.diasReservaAnticipada}
               citaId={reprogramando.id}
+              modalidad={reprogramando.modalidad}
               onElegir={(h) => setConfirm({ kind: 'reprogramar', cita: reprogramando, hueco: h })}
             />
           </div>
@@ -296,7 +416,7 @@ export default function Consultorio() {
             <ServicioCard
               key={`${s.servicioId}-${s.sede.id}-${version}`}
               servicio={s}
-              onElegir={(prestacionId, hueco) => setConfirm({ kind: 'reservar', servicio: s, prestacionId, hueco })}
+              onElegir={(prestacion, hueco) => setConfirm({ kind: 'reservar', servicio: s, prestacion, hueco })}
             />
           ))
         )}
@@ -310,20 +430,32 @@ export default function Consultorio() {
             </div>
             <div className="italiana modal-title">
               {confirm.kind === 'reservar'
-                ? `${confirm.servicio.nombre} · ${confirm.servicio.prestaciones.find((p) => p.id === confirm.prestacionId)?.nombre ?? ''}`
+                ? `${confirm.servicio.nombre} · ${confirm.prestacion.nombre}`
                 : `${confirm.cita.servicio} · ${confirm.cita.prestacion.nombre}`}
             </div>
             {confirm.kind === 'cancelar' ? (
               <>
                 <div className="modal-meta">{fechaLargaAR(confirm.cita.inicio)} · {horaAR(confirm.cita.inicio)}</div>
                 <div className="modal-meta">{confirm.cita.profesional}</div>
-                <div className="modal-wait">El horario queda libre y, si era tu consulta incluida, la recuperás para ese mes.</div>
+                <div className="modal-wait">
+                  {confirm.cita.modalidad === 'PARTICULAR'
+                    ? 'El horario queda libre. La seña no se devuelve: si querés conservarla, cambiá el horario en lugar de cancelar.'
+                    : 'El horario queda libre y, si era tu consulta incluida, la recuperás para ese mes.'}
+                </div>
               </>
             ) : (
               <>
                 <div className="modal-meta">{fechaLargaAR(confirm.hueco.inicio)} · {horaAR(confirm.hueco.inicio)}</div>
                 <div className="modal-meta">{confirm.hueco.profesional}</div>
                 <div className="modal-meta">{confirm.kind === 'reservar' ? confirm.servicio.sede.nombre : confirm.cita.sede.nombre}</div>
+                {confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR' && confirm.prestacion.precioParticular !== null && (
+                  <div className="modal-wait">
+                    Consulta particular de {formatARS(confirm.prestacion.precioParticular)}.
+                    {confirm.prestacion.sena > 0
+                      ? ` Ahora pagás la seña de ${formatARS(confirm.prestacion.sena)} con Mercado Pago y el resto (${formatARS(confirm.prestacion.precioParticular - confirm.prestacion.sena)}) se lo pagás al profesional el día de la consulta. Te guardamos el horario 15 minutos. La seña no se devuelve: si cancelás la perdés; si cambiás el horario, la conservás.`
+                      : ' Se la pagás al profesional el día de la consulta.'}
+                  </div>
+                )}
               </>
             )}
             <div className="modal-actions">
@@ -331,7 +463,13 @@ export default function Consultorio() {
                 Volver
               </button>
               <button className="btn-taupe" onClick={confirmar} disabled={busy}>
-                {busy ? 'Enviando…' : confirm.kind === 'cancelar' ? 'Cancelar cita' : 'Confirmar'}
+                {busy
+                  ? 'Enviando…'
+                  : confirm.kind === 'cancelar'
+                    ? 'Cancelar cita'
+                    : confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR' && confirm.prestacion.sena > 0
+                      ? `Pagar seña ${formatARS(confirm.prestacion.sena)}`
+                      : 'Confirmar'}
               </button>
             </div>
           </div>
