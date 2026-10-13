@@ -3,6 +3,7 @@ import { useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../store/auth';
 import { ApiError } from '../api/client';
 import { useBrand } from '../brand/context';
+import { leerVolverA } from '../lib/volverA';
 import './Login.css';
 
 export default function Login() {
@@ -17,11 +18,14 @@ export default function Login() {
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const brand = useBrand();
+  // Se lee una vez al montar: al llegar a destino se borra, y este componente
+  // puede volver a renderizar en el medio (ya con sesión) y mandar a '/'.
+  const [destino] = useState(() => leerVolverA() ?? '/');
 
   if (token && perfil) {
     return (
       <Navigate
-        to={perfil.consentimientoFirmado ? '/' : '/consentimiento'}
+        to={perfil.consentimientoFirmado ? destino : '/consentimiento'}
         replace
       />
     );
@@ -33,7 +37,8 @@ export default function Login() {
     try {
       await login(email.trim(), password);
       const p = useAuth.getState().perfil;
-      navigate(p?.consentimientoFirmado ? '/' : '/consentimiento', {
+      // Si entró por un link (ej. /consultorio), vuelve ahí.
+      navigate(p?.consentimientoFirmado ? destino : '/consentimiento', {
         replace: true,
       });
     } catch (err) {

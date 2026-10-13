@@ -17,8 +17,9 @@ export default function AppLayout() {
   useEffect(() => {
     if (checkedRef.current) return;
     if (!alumnoId) return;
-    // No interrumpir si el alumno ya esta en /novedades.
-    if (location.pathname === '/novedades') {
+    // Solo al entrar por el Home: no interrumpir si ya está en /novedades ni
+    // "robar" un link directo (ej. /consultorio compartido por WhatsApp).
+    if (location.pathname !== '/') {
       checkedRef.current = true;
       return;
     }

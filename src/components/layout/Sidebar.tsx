@@ -8,6 +8,8 @@ import './Sidebar.css';
 const navItems = [
   { to: '/', label: 'Home', end: true },
   { to: '/agenda', label: 'Agenda' },
+  // Solo si su plan lo habilita (perfil.consultorioDisponible).
+  { to: '/consultorio', label: 'Consultorio', soloConsultorio: true },
   { to: '/cuenta', label: 'Mi cuenta' },
   { to: '/perfil', label: 'Perfil' },
   { to: '/novedades', label: 'Novedades' },
@@ -15,6 +17,7 @@ const navItems = [
 
 export default function Sidebar() {
   const perfil = useAuth((s) => s.perfil);
+  const items = navItems.filter((i) => !i.soloConsultorio || perfil?.consultorioDisponible);
   const brand = useBrand();
   const fullName = perfil
     ? `${perfil.nombre} ${perfil.apellido}`.trim()
@@ -32,7 +35,7 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}

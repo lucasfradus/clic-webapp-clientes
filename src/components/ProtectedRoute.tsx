@@ -1,5 +1,6 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/auth';
+import { guardarVolverA, llegoA } from '../lib/volverA';
 
 interface Props {
   requireConsent?: boolean;
@@ -13,8 +14,13 @@ export default function ProtectedRoute({
   const token = useAuth((s) => s.token);
   const perfil = useAuth((s) => s.perfil);
   const consentimientoNoRequerido = useAuth((s) => s.consentimientoNoRequerido);
+  const location = useLocation();
 
-  if (!token) return <Navigate to="/login" replace />;
+  if (!token) {
+    // Llegó por un link (ej. /consultorio) sin sesión: después del login vuelve ahí.
+    guardarVolverA(location.pathname + location.search);
+    return <Navigate to="/login" replace />;
+  }
 
   // Esperar bootstrap
   if (!perfil) return <div className="full-loader">Cargando…</div>;
@@ -42,5 +48,6 @@ export default function ProtectedRoute({
     return <Navigate to="/autorizacion-menores" replace />;
   }
 
+  llegoA(location.pathname + location.search);
   return <Outlet />;
 }
