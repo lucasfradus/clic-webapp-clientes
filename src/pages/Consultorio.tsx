@@ -170,6 +170,7 @@ function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; o
               ))}
             </div>
           )}
+          {prestacion?.descripcion && <p className="consultorio-nota consultorio-descripcion">{prestacion.descripcion}</p>}
           {abierto && prestacion ? (
             <ElegirHorario
               sedeId={servicio.sede.id}
@@ -448,6 +449,9 @@ export default function Consultorio() {
                 <div className="modal-meta">{fechaLargaAR(confirm.hueco.inicio)} · {horaAR(confirm.hueco.inicio)}</div>
                 <div className="modal-meta">{confirm.hueco.profesional}</div>
                 <div className="modal-meta">{confirm.kind === 'reservar' ? confirm.servicio.sede.nombre : confirm.cita.sede.nombre}</div>
+                {confirm.kind === 'reservar' && confirm.prestacion.descripcion && (
+                  <div className="modal-meta consultorio-descripcion">{confirm.prestacion.descripcion}</div>
+                )}
                 {confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR' && confirm.prestacion.precioParticular !== null && (
                   <div className="modal-wait">
                     Consulta particular de {formatARS(confirm.prestacion.precioParticular)}.

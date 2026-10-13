@@ -88,7 +88,7 @@ export interface ServicioConsultorio {
   horasCancelacion: number;
   diasReservaAnticipada: number;
   /** precioParticular null: la prestación no se da en horarios particulares. sena: lo que se paga online. */
-  prestaciones: { id: number; nombre: string; duracionMinutos: number; precioParticular: number | null; sena: number }[];
+  prestaciones: { id: number; nombre: string; descripcion: string | null; duracionMinutos: number; precioParticular: number | null; sena: number }[];
   /** Incluidas por mes según su plan (0 = solo particulares). */
   incluidasPorMes: number;
   /** Mes actual y siguiente: cuántas incluidas le quedan. `desde` es YYYY-MM-DD. */
