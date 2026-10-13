@@ -89,8 +89,9 @@ export interface ServicioConsultorio {
   sede: { id: number; nombre: string; direccion: string | null };
   horasCancelacion: number;
   diasReservaAnticipada: number;
-  prestaciones: { id: number; nombre: string; duracionMinutos: number }[];
-  /** Incluidas por mes según su plan (0 = solo particulares, en recepción). */
+  /** precioParticular null: la prestación no se da en horarios particulares. sena: lo que se paga online. */
+  prestaciones: { id: number; nombre: string; duracionMinutos: number; precioParticular: number | null; sena: number }[];
+  /** Incluidas por mes según su plan (0 = solo particulares). */
   incluidasPorMes: number;
   /** Mes actual y siguiente: cuántas incluidas le quedan. `desde` es YYYY-MM-DD. */
   meses: { mes: string; desde: string; disponibles: number }[];
@@ -117,6 +118,21 @@ export interface CitaConsultorio {
   consultorio: string | null;
   /** Hasta cuándo puede cancelar o reprogramar (ISO). */
   cancelableHasta: string;
+  /** Particular: precio de la consulta y seña pagada (el resto va al profesional). */
+  precio: number | null;
+  sena: number | null;
+}
+
+/** Ir a pagar la seña: link de MP, o la cita directa si el servicio no cobra seña. */
+export type InicioSena =
+  | { solicitudId: number; initPoint: string; monto: number; precio: number; expiraEn: string }
+  | { citaId: number; message: string };
+
+export interface EstadoSena {
+  estado: 'PENDIENTE' | 'PROCESADA' | 'VENCIDA' | 'SIN_LUGAR';
+  citaId: number | null;
+  expiraEn: string;
+  monto: number;
 }
 
 export type SuscripcionModalidad = 'HORARIO_FIJO' | 'PACK';

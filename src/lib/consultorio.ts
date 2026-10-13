@@ -42,3 +42,48 @@ export function fechaLargaAR(iso: string): string {
 export function puedeModificar(cancelableHasta: string, ahora: Date = new Date()): boolean {
   return new Date(cancelableHasta).getTime() > ahora.getTime();
 }
+
+// ─── Seña de una consulta particular (vuelta de MP) ───
+
+const SENA_KEY = 'senaEnCurso';
+
+/** Antes de ir a MP: si el socio vuelve en la misma pestaña, se sabe qué seña mirar. */
+export function guardarSenaEnCurso(solicitudId: number) {
+  try {
+    sessionStorage.setItem(SENA_KEY, String(solicitudId));
+  } catch {
+    /* storage bloqueado: queda la referencia que MP agrega a la URL */
+  }
+}
+
+export function olvidarSenaEnCurso() {
+  try {
+    sessionStorage.removeItem(SENA_KEY);
+  } catch {
+    /* nada */
+  }
+}
+
+/**
+ * La seña de la que vuelve el socio: MP agrega `external_reference` (la nuestra,
+ * {"tipo":"SENA","solicitudId":N}) a la URL de vuelta; si no está, la de la pestaña.
+ */
+export function senaDeLaVuelta(search: string): number | null {
+  const params = new URLSearchParams(search);
+  const ref = params.get('external_reference');
+  if (ref) {
+    try {
+      const r = JSON.parse(ref) as { tipo?: string; solicitudId?: unknown };
+      if (r.tipo === 'SENA' && typeof r.solicitudId === 'number') return r.solicitudId;
+    } catch {
+      /* referencia ajena */
+    }
+  }
+  if (!params.has('collection_status')) return null;
+  try {
+    const guardada = Number(sessionStorage.getItem(SENA_KEY));
+    return guardada > 0 ? guardada : null;
+  } catch {
+    return null;
+  }
+}
