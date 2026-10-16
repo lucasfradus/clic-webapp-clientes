@@ -121,3 +121,37 @@
   align-items: center;
   gap: 12px;
 }
+
+/* Tipo de horario: incluida (cubierta por la cuota) o particular (con seña). */
+.consultorio-hueco-tipo {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.consultorio-hueco-tipo.particular {
+  color: var(--ink);
+}
+
+/* Vuelta de Mercado Pago: estado de la seña. */
+.consultorio-cartel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+.consultorio-cartel.ok {
+  border-color: var(--line-soft);
+  background: var(--beige-soft);
+}
+.consultorio-cartel.alerta {
+  border-color: var(--ink-mute);
+}
+
+/* Qué incluye la prestación elegida (la carga el staff en Configuración). */
+.consultorio-descripcion {
+  white-space: pre-line;
+  color: var(--ink-soft);
+}
