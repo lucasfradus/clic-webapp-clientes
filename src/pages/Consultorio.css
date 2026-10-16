@@ -7,47 +7,149 @@
   margin-bottom: 28px;
 }
 
-.card.consultorio-servicio {
+/* Sacar una cita: cuatro pasos (servicio → consulta → horario → confirmar). */
+.consultorio-pasos {
+  scroll-margin-top: 16px;
+}
+.consultorio-pasos-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.consultorio-paso-num {
+  font-size: 11px;
+  color: var(--ink-mute);
+}
+.consultorio-progreso {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+.consultorio-progreso span {
+  height: 3px;
+  border-radius: 3px;
+  background: var(--line-soft);
+}
+.consultorio-progreso span.hecho {
+  background: var(--taupe-dark);
+}
+.consultorio-paso-titulo {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
 }
-.consultorio-servicio-head {
+.consultorio-paso-titulo h2 {
+  font-size: 28px;
+  line-height: 1.05;
+  color: var(--ink);
+}
+.consultorio-volver,
+.consultorio-link {
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: inherit;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.consultorio-volver {
+  font-size: 12px;
+  /* Área de toque cómoda sin agrandar el texto. */
+  padding: 6px 0;
+}
+.consultorio-link {
+  font-size: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.consultorio-resumen {
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+
+/* Tarjeta elegible de los pasos 1 y 2 (servicio o prestación). */
+.card.consultorio-opcion {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+/* Solo con mouse: en el celular el hover queda pegado en la tarjeta tocada. */
+@media (hover: hover) {
+  .card.consultorio-opcion:hover:not(:disabled) {
+    background: var(--beige-soft);
+  }
+}
+.card.consultorio-opcion:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.consultorio-opcion-head {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
-  flex-wrap: wrap;
 }
 .consultorio-servicio-nombre {
   font-size: 24px;
-  line-height: 1;
+  line-height: 1.05;
 }
 .consultorio-meta {
   font-size: 12px;
   color: var(--ink-mute);
   margin-top: 6px;
 }
-
-.consultorio-prestaciones {
+.consultorio-flecha {
+  font-size: 18px;
+  color: var(--ink-mute);
+  line-height: 1;
+}
+.consultorio-duracion {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding-top: 4px;
+}
+.consultorio-tags {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
-.consultorio-prestacion {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 100px;
-  padding: 8px 14px;
-  font-family: inherit;
-  font-size: 12px;
-  color: var(--ink);
-  cursor: pointer;
+.consultorio-nota-picker {
+  margin-bottom: 14px;
 }
-.consultorio-prestacion.active {
-  background: var(--ink);
-  border-color: var(--ink);
-  color: var(--surface);
+
+/* Paso 4: resumen de la cita antes de confirmar. */
+.card.consultorio-confirmar {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.consultorio-confirmar-fecha {
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.consultorio-confirmar-fecha::first-letter {
+  text-transform: uppercase;
+}
+.consultorio-confirmar-hora {
+  font-size: 30px;
+  line-height: 1.1;
+  margin: 2px 0 8px;
+}
+.consultorio-confirmar .modal-wait {
+  margin-top: 0;
+}
+.consultorio-confirmar .modal-actions {
+  margin-top: 4px;
 }
 
 .consultorio-picker .week-nav {
@@ -74,6 +176,7 @@
   padding: 12px 14px;
   font-family: inherit;
   color: var(--ink);
+  text-align: left;
   cursor: pointer;
   transition: background 0.15s;
 }
