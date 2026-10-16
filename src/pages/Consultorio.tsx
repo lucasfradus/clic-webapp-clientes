@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   cancelarCita,
@@ -30,8 +30,8 @@ import './Consultorio.css';
 
 type Prestacion = ServicioConsultorio['prestaciones'][number];
 
+/** Lo que se confirma en el modal: cambios sobre una cita ya sacada (una nueva se confirma en el paso 4). */
 type Confirmacion =
-  | { kind: 'reservar'; servicio: ServicioConsultorio; prestacion: Prestacion; hueco: HuecoConsultorio }
   | { kind: 'reprogramar'; cita: CitaConsultorio; hueco: HuecoConsultorio }
   | { kind: 'cancelar'; cita: CitaConsultorio };
 
@@ -125,73 +125,266 @@ function ElegirHorario({
   );
 }
 
-function ServicioCard({ servicio, onElegir }: { servicio: ServicioConsultorio; onElegir: (p: Prestacion, h: HuecoConsultorio) => void }) {
-  const [prestacionId, setPrestacionId] = useState(servicio.prestaciones[0]?.id);
-  const [abierto, setAbierto] = useState(false);
-  const mesActual = servicio.meses[0];
-  const mesSiguiente = servicio.meses[1];
-  const prestacion = servicio.prestaciones.find((p) => p.id === prestacionId);
-  const conParticulares = servicio.prestaciones.some((p) => p.precioParticular !== null);
+const claveServicio = (s: ServicioConsultorio) => `${s.servicioId}-${s.sede.id}`;
+
+/** Cómo se puede sacar la prestación: incluida en el plan (queda alguna este mes o el que viene) y/o particular. */
+function modalidades(servicio: ServicioConsultorio, prestacion: Prestacion) {
+  return {
+    incluida: servicio.incluidasPorMes > 0 && servicio.meses.some((m) => m.disponibles > 0),
+    particular: prestacion.precioParticular !== null,
+  };
+}
+
+function textoParticular(p: Prestacion): string {
+  if (p.precioParticular === null) return '';
+  return p.sena > 0 ? `Particular ${formatARS(p.precioParticular)} · seña ${formatARS(p.sena)}` : `Particular ${formatARS(p.precioParticular)}`;
+}
+
+const TITULOS = ['¿Qué servicio?', '¿Qué consulta?', '¿Cuándo?', 'Confirmar'];
+
+/**
+ * Sacar una cita, en cuatro pasos: servicio → prestación → horario → confirmar.
+ * El paso sale de lo elegido: si al recargar la prestación deja de estar disponible
+ * (p. ej. se usó la incluida), vuelve solo al paso 2.
+ */
+function SacarCita({ servicios, version, onReservada }: { servicios: ServicioConsultorio[]; version: number; onReservada: () => Promise<void> }) {
+  const [clave, setClave] = useState<string | null>(null);
+  const [prestacionId, setPrestacionId] = useState<number | null>(null);
+  const [hueco, setHueco] = useState<HuecoConsultorio | null>(null);
+  const [busy, setBusy] = useState(false);
+  const ref = useRef<HTMLElement>(null);
+
+  const servicio = servicios.find((s) => claveServicio(s) === clave);
+  const prestacion = servicio?.prestaciones.find((p) => p.id === prestacionId);
+  const mods = servicio && prestacion ? modalidades(servicio, prestacion) : null;
+  const paso = !servicio
+    ? 1
+    : !prestacion || !mods || (!mods.incluida && !mods.particular)
+      ? 2
+      : !hueco || !(hueco.modalidad === 'INCLUIDA' ? mods.incluida : mods.particular)
+        ? 3
+        : 4;
+
+  // En el celular la lista puede quedar arriba de la pantalla: al cambiar de paso, volver al título.
+  const primerRender = useRef(true);
+  useEffect(() => {
+    if (primerRender.current) {
+      primerRender.current = false;
+      return;
+    }
+    const el = ref.current;
+    if (el && el.getBoundingClientRect().top < 0) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [paso]);
+
+  function elegirServicio(s: ServicioConsultorio) {
+    setClave(claveServicio(s));
+    setPrestacionId(null);
+    setHueco(null);
+  }
+
+  function elegirPrestacion(p: Prestacion) {
+    setPrestacionId(p.id);
+    setHueco(null);
+  }
+
+  function volver() {
+    if (paso === 4) setHueco(null);
+    else if (paso === 3) setPrestacionId(null);
+    else setClave(null);
+  }
+
+  function reiniciar() {
+    setClave(null);
+    setPrestacionId(null);
+    setHueco(null);
+  }
+
+  async function confirmar() {
+    if (!servicio || !prestacion || !hueco) return;
+    setBusy(true);
+    try {
+      if (hueco.modalidad === 'PARTICULAR') {
+        const volverA = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/consultorio`;
+        const r = await iniciarSena({ prestacionId: prestacion.id, franjaId: hueco.franjaId, inicio: hueco.inicio, volverA });
+        if ('initPoint' in r) {
+          guardarSenaEnCurso(r.solicitudId);
+          window.location.assign(r.initPoint);
+          return; // queda "Enviando…" hasta que carga MP
+        }
+      } else {
+        await reservarCita({ prestacionId: prestacion.id, franjaId: hueco.franjaId, inicio: hueco.inicio });
+      }
+      toast.success('¡Listo! Tu cita quedó confirmada. Te mandamos un mail.');
+      reiniciar();
+      await onReservada();
+    } catch (err) {
+      toast.error(mensajeError(err));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (servicios.length === 0) {
+    return (
+      <section className="consultorio-section">
+        <div className="tag-label">Sacar una cita</div>
+        <div className="card agenda-empty">Tu plan no incluye servicios de consultorio.</div>
+      </section>
+    );
+  }
+
+  const mesActual = servicio?.meses[0];
+  const mesSiguiente = servicio?.meses[1];
 
   return (
-    <div className="card consultorio-servicio">
-      <div className="consultorio-servicio-head">
-        <div>
-          <div className="italiana consultorio-servicio-nombre">{servicio.nombre}</div>
-          <div className="consultorio-meta">{servicio.sede.nombre}</div>
-        </div>
-        {servicio.incluidasPorMes > 0 && mesActual && (
-          <span className={'badge ' + (mesActual.disponibles > 0 ? 'ok' : 'fu')}>
-            {mesActual.disponibles > 0
-              ? `Te queda ${mesActual.disponibles === 1 ? '1 consulta incluida' : `${mesActual.disponibles} incluidas`} en ${mesActual.mes}`
-              : `Ya usaste la de ${mesActual.mes}`}
-          </span>
-        )}
+    <section className="consultorio-section consultorio-pasos" ref={ref}>
+      <div className="consultorio-pasos-head">
+        <div className="tag-label">Sacar una cita</div>
+        <div className="consultorio-paso-num">Paso {paso} de 4</div>
       </div>
+      <div className="consultorio-progreso" aria-hidden>
+        {TITULOS.map((t, i) => (
+          <span key={t} className={i < paso ? 'hecho' : ''} />
+        ))}
+      </div>
+      <div className="consultorio-paso-titulo">
+        {paso > 1 && (
+          <button className="consultorio-volver" onClick={volver} disabled={busy}>
+            ← Volver
+          </button>
+        )}
+        <h2 className="italiana">{TITULOS[paso - 1]}</h2>
+      </div>
+      {servicio && (
+        <div className="consultorio-resumen">
+          {[servicio.nombre, paso > 2 && prestacion?.nombre, paso > 2 && prestacion && `${prestacion.duracionMinutos} min`]
+            .filter(Boolean)
+            .join(' · ')}
+          {' · '}
+          <button className="consultorio-link" onClick={reiniciar} disabled={busy}>
+            cambiar
+          </button>
+        </div>
+      )}
 
-      {servicio.incluidasPorMes === 0 && !conParticulares ? (
-        <p className="consultorio-nota">Tu plan no incluye consultas de {servicio.nombre.toLowerCase()}. Consultá en recepción.</p>
-      ) : (
-        <>
-          {mesActual?.disponibles === 0 && mesSiguiente && mesSiguiente.disponibles > 0 && (
-            <p className="consultorio-nota">Podés sacar la de {mesSiguiente.mes} eligiendo un día de ese mes.</p>
-          )}
-          {servicio.prestaciones.length > 1 && (
-            <div className="consultorio-prestaciones">
-              {servicio.prestaciones.map((p) => (
-                <button
-                  key={p.id}
-                  className={'consultorio-prestacion' + (p.id === prestacionId ? ' active' : '')}
-                  onClick={() => setPrestacionId(p.id)}
-                >
-                  {p.nombre} · {p.duracionMinutos} min
-                  {p.precioParticular !== null && servicio.incluidasPorMes === 0 ? ` · ${formatARS(p.precioParticular)}` : ''}
-                </button>
-              ))}
-            </div>
-          )}
-          {prestacion?.descripcion && <p className="consultorio-nota consultorio-descripcion">{prestacion.descripcion}</p>}
-          {abierto && prestacion ? (
-            <ElegirHorario
-              sedeId={servicio.sede.id}
-              prestacionId={prestacion.id}
-              diasAdelante={servicio.diasReservaAnticipada}
-              sena={prestacion.sena}
-              onElegir={(h) => onElegir(prestacion, h)}
-            />
-          ) : (
-            <button className="btn-taupe" onClick={() => setAbierto(true)}>
-              Sacar una cita
+      {paso === 1 &&
+        servicios.map((s) => {
+          const mes = s.meses[0];
+          const sinNada = s.incluidasPorMes === 0 && !s.prestaciones.some((p) => p.precioParticular !== null);
+          return (
+            <button key={claveServicio(s)} className="card consultorio-opcion" disabled={sinNada} onClick={() => elegirServicio(s)}>
+              <div className="consultorio-opcion-head">
+                <div>
+                  <div className="italiana consultorio-servicio-nombre">{s.nombre}</div>
+                  <div className="consultorio-meta">{s.sede.nombre}</div>
+                </div>
+                {!sinNada && <span className="consultorio-flecha">→</span>}
+              </div>
+              {sinNada ? (
+                <p className="consultorio-nota">Tu plan no incluye consultas de {s.nombre.toLowerCase()}. Consultá en recepción.</p>
+              ) : (
+                s.incluidasPorMes > 0 &&
+                mes && (
+                  <div className="consultorio-tags">
+                    <span className={'badge ' + (mes.disponibles > 0 ? 'ok' : 'fu')}>
+                      {mes.disponibles > 0
+                        ? `Te queda ${mes.disponibles === 1 ? '1 consulta incluida' : `${mes.disponibles} incluidas`} en ${mes.mes}`
+                        : `Ya usaste la de ${mes.mes}`}
+                    </span>
+                  </div>
+                )
+              )}
             </button>
+          );
+        })}
+
+      {paso === 2 && servicio && (
+        <>
+          {servicio.prestaciones.map((p) => {
+            const m = modalidades(servicio, p);
+            const disponible = m.incluida || m.particular;
+            return (
+              <button key={p.id} className="card consultorio-opcion" disabled={!disponible} onClick={() => elegirPrestacion(p)}>
+                <div className="consultorio-opcion-head">
+                  <div className="italiana consultorio-servicio-nombre">{p.nombre}</div>
+                  <span className="consultorio-duracion">{p.duracionMinutos} min</span>
+                </div>
+                {p.descripcion && <p className="consultorio-nota consultorio-descripcion">{p.descripcion}</p>}
+                <div className="consultorio-tags">
+                  {m.incluida && <span className="badge ok">Incluida en tu plan</span>}
+                  {m.particular && <span className="badge tuya">{textoParticular(p)}</span>}
+                  {!disponible && <span className="badge fu">No disponible por ahora</span>}
+                </div>
+              </button>
+            );
+          })}
+          {servicio.prestaciones.some((p) => p.precioParticular !== null) && (
+            <p className="consultorio-nota subtle">
+              Los horarios particulares se pagan aparte: una seña online a Clic y el resto al profesional el día de la consulta.
+            </p>
           )}
-          <p className="consultorio-nota subtle">
-            Podés cancelar o cambiar la cita hasta {servicio.horasCancelacion} h antes.
-            {conParticulares &&
-              ' Los horarios particulares se pagan aparte: una seña online a Clic y el resto al profesional el día de la consulta.'}
-          </p>
         </>
       )}
-    </div>
+
+      {paso === 3 && servicio && prestacion && (
+        <div className="card">
+          {mods?.incluida && mesActual?.disponibles === 0 && mesSiguiente && mesSiguiente.disponibles > 0 && (
+            <p className="consultorio-nota consultorio-nota-picker">Podés sacar la de {mesSiguiente.mes} eligiendo un día de ese mes.</p>
+          )}
+          <ElegirHorario
+            key={version}
+            sedeId={servicio.sede.id}
+            prestacionId={prestacion.id}
+            diasAdelante={servicio.diasReservaAnticipada}
+            sena={prestacion.sena}
+            onElegir={setHueco}
+          />
+        </div>
+      )}
+
+      {paso === 4 && servicio && prestacion && hueco && (
+        <div className="card consultorio-confirmar">
+          <div className="italiana consultorio-servicio-nombre">
+            {servicio.nombre} · {prestacion.nombre}
+          </div>
+          <div className="consultorio-confirmar-datos">
+            <div className="consultorio-confirmar-fecha">{fechaLargaAR(hueco.inicio)}</div>
+            <div className="italiana consultorio-confirmar-hora">
+              {horaAR(hueco.inicio)} a {horaAR(hueco.fin)}
+            </div>
+            <div className="modal-meta">{hueco.profesional}</div>
+            <div className="modal-meta">{servicio.sede.nombre}</div>
+          </div>
+          {hueco.modalidad === 'INCLUIDA' ? (
+            <div className="consultorio-tags">
+              <span className="badge ok">Incluida en tu plan</span>
+            </div>
+          ) : (
+            prestacion.precioParticular !== null && (
+              <div className="modal-wait">
+                Consulta particular de {formatARS(prestacion.precioParticular)}.
+                {prestacion.sena > 0
+                  ? ` Ahora pagás la seña de ${formatARS(prestacion.sena)} con Mercado Pago y el resto (${formatARS(prestacion.precioParticular - prestacion.sena)}) se lo pagás al profesional el día de la consulta. Te guardamos el horario 15 minutos. La seña no se devuelve: si cancelás la perdés; si cambiás el horario, la conservás.`
+                  : ' Se la pagás al profesional el día de la consulta.'}
+              </div>
+            )
+          )}
+          <p className="consultorio-nota subtle">Podés cancelar o cambiar la cita hasta {servicio.horasCancelacion} h antes.</p>
+          <div className="modal-actions">
+            <button className="modal-secondary" onClick={volver} disabled={busy}>
+              Volver
+            </button>
+            <button className="btn-taupe" onClick={confirmar} disabled={busy}>
+              {busy
+                ? 'Enviando…'
+                : hueco.modalidad === 'PARTICULAR' && prestacion.sena > 0
+                  ? `Pagar seña ${formatARS(prestacion.sena)}`
+                  : 'Confirmar'}
+            </button>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -266,8 +459,8 @@ export default function Consultorio() {
   const [reprogramando, setReprogramando] = useState<CitaConsultorio | null>(null);
   const [confirm, setConfirm] = useState<Confirmacion | null>(null);
   const [busy, setBusy] = useState(false);
-  // Cambia después de cada reserva/cambio/cancelación: remonta las tarjetas para
-  // que el selector no quede mostrando horarios viejos (p. ej. incluidas ya usadas).
+  // Cambia después de cada reserva/cambio/cancelación: remonta el selector de horarios
+  // para que no quede mostrando huecos viejos (p. ej. incluidas ya usadas).
   const [version, setVersion] = useState(0);
 
   const cargar = useCallback(async () => {
@@ -285,6 +478,11 @@ export default function Consultorio() {
     void cargar();
   }, [cargar]);
 
+  const recargar = useCallback(async () => {
+    await cargar();
+    setVersion((v) => v + 1);
+  }, [cargar]);
+
   const vuelta = useVueltaDeSena(cargar);
   const [cartelCerrado, setCartelCerrado] = useState(false);
 
@@ -294,19 +492,7 @@ export default function Consultorio() {
     if (!confirm) return;
     setBusy(true);
     try {
-      if (confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR') {
-        const volverA = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, '')}/consultorio`;
-        const r = await iniciarSena({ prestacionId: confirm.prestacion.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio, volverA });
-        if ('initPoint' in r) {
-          guardarSenaEnCurso(r.solicitudId);
-          window.location.assign(r.initPoint);
-          return; // queda "Enviando…" hasta que carga MP
-        }
-        toast.success('¡Listo! Tu cita quedó confirmada. Te mandamos un mail.');
-      } else if (confirm.kind === 'reservar') {
-        await reservarCita({ prestacionId: confirm.prestacion.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio });
-        toast.success('¡Listo! Tu cita quedó confirmada. Te mandamos un mail.');
-      } else if (confirm.kind === 'reprogramar') {
+      if (confirm.kind === 'reprogramar') {
         await reprogramarCita({ citaId: confirm.cita.id, franjaId: confirm.hueco.franjaId, inicio: confirm.hueco.inicio });
         toast.success('Cita reprogramada');
         setReprogramando(null);
@@ -315,8 +501,7 @@ export default function Consultorio() {
         toast.success('Cita cancelada');
       }
       setConfirm(null);
-      await cargar();
-      setVersion((v) => v + 1);
+      await recargar();
     } catch (err) {
       toast.error(mensajeError(err));
     } finally {
@@ -408,31 +593,14 @@ export default function Consultorio() {
         </section>
       )}
 
-      <section className="consultorio-section">
-        <div className="tag-label">Sacar una cita</div>
-        {servicios.length === 0 ? (
-          <div className="card agenda-empty">Tu plan no incluye servicios de consultorio.</div>
-        ) : (
-          servicios.map((s) => (
-            <ServicioCard
-              key={`${s.servicioId}-${s.sede.id}-${version}`}
-              servicio={s}
-              onElegir={(prestacion, hueco) => setConfirm({ kind: 'reservar', servicio: s, prestacion, hueco })}
-            />
-          ))
-        )}
-      </section>
+      <SacarCita servicios={servicios} version={version} onReservada={recargar} />
 
       {confirm && (
         <div className="modal-backdrop" onClick={() => !busy && setConfirm(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="tag-label">
-              {confirm.kind === 'reservar' ? 'Confirmar cita' : confirm.kind === 'reprogramar' ? 'Cambiar horario' : 'Cancelar cita'}
-            </div>
+            <div className="tag-label">{confirm.kind === 'reprogramar' ? 'Cambiar horario' : 'Cancelar cita'}</div>
             <div className="italiana modal-title">
-              {confirm.kind === 'reservar'
-                ? `${confirm.servicio.nombre} · ${confirm.prestacion.nombre}`
-                : `${confirm.cita.servicio} · ${confirm.cita.prestacion.nombre}`}
+              {confirm.cita.servicio} · {confirm.cita.prestacion.nombre}
             </div>
             {confirm.kind === 'cancelar' ? (
               <>
@@ -448,18 +616,7 @@ export default function Consultorio() {
               <>
                 <div className="modal-meta">{fechaLargaAR(confirm.hueco.inicio)} · {horaAR(confirm.hueco.inicio)}</div>
                 <div className="modal-meta">{confirm.hueco.profesional}</div>
-                <div className="modal-meta">{confirm.kind === 'reservar' ? confirm.servicio.sede.nombre : confirm.cita.sede.nombre}</div>
-                {confirm.kind === 'reservar' && confirm.prestacion.descripcion && (
-                  <div className="modal-meta consultorio-descripcion">{confirm.prestacion.descripcion}</div>
-                )}
-                {confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR' && confirm.prestacion.precioParticular !== null && (
-                  <div className="modal-wait">
-                    Consulta particular de {formatARS(confirm.prestacion.precioParticular)}.
-                    {confirm.prestacion.sena > 0
-                      ? ` Ahora pagás la seña de ${formatARS(confirm.prestacion.sena)} con Mercado Pago y el resto (${formatARS(confirm.prestacion.precioParticular - confirm.prestacion.sena)}) se lo pagás al profesional el día de la consulta. Te guardamos el horario 15 minutos. La seña no se devuelve: si cancelás la perdés; si cambiás el horario, la conservás.`
-                      : ' Se la pagás al profesional el día de la consulta.'}
-                  </div>
-                )}
+                <div className="modal-meta">{confirm.cita.sede.nombre}</div>
               </>
             )}
             <div className="modal-actions">
@@ -467,13 +624,7 @@ export default function Consultorio() {
                 Volver
               </button>
               <button className="btn-taupe" onClick={confirmar} disabled={busy}>
-                {busy
-                  ? 'Enviando…'
-                  : confirm.kind === 'cancelar'
-                    ? 'Cancelar cita'
-                    : confirm.kind === 'reservar' && confirm.hueco.modalidad === 'PARTICULAR' && confirm.prestacion.sena > 0
-                      ? `Pagar seña ${formatARS(confirm.prestacion.sena)}`
-                      : 'Confirmar'}
+                {busy ? 'Enviando…' : confirm.kind === 'cancelar' ? 'Cancelar cita' : 'Confirmar'}
               </button>
             </div>
           </div>
