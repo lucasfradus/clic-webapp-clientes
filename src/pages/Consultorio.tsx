@@ -127,10 +127,13 @@ function ElegirHorario({
 
 const claveServicio = (s: ServicioConsultorio) => `${s.servicioId}-${s.sede.id}`;
 
-/** Cómo se puede sacar la prestación: incluida en el plan (queda alguna este mes o el que viene) y/o particular. */
+/**
+ * Cómo se puede sacar la prestación: incluida en el plan (queda alguna este mes o
+ * el que viene, y la prestación entra en el abono) y/o particular.
+ */
 function modalidades(servicio: ServicioConsultorio, prestacion: Prestacion) {
   return {
-    incluida: servicio.incluidasPorMes > 0 && servicio.meses.some((m) => m.disponibles > 0),
+    incluida: prestacion.incluidaEnAbono !== false && servicio.incluidasPorMes > 0 && servicio.meses.some((m) => m.disponibles > 0),
     particular: prestacion.precioParticular !== null,
   };
 }
