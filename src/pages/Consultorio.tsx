@@ -115,7 +115,14 @@ function ElegirHorario({
                 <span className="italiana consultorio-hueco-hora">{horaAR(h.inicio)}</span>
                 <span className="consultorio-hueco-profe">{h.profesional}</span>
                 <span className={'consultorio-hueco-tipo' + (h.modalidad === 'PARTICULAR' ? ' particular' : '')}>
-                  {h.modalidad === 'INCLUIDA' ? 'Incluida' : sena ? `Particular · seña ${formatARS(sena)}` : 'Particular'}
+                  {h.modalidad === 'INCLUIDA'
+                    ? 'Incluida'
+                    : // Cada profesional tiene su precio. Al reprogramar no se muestra: la cita conserva el que pagó.
+                      !citaId && h.precio != null
+                      ? `Particular · ${formatARS(h.precio)}`
+                      : sena
+                        ? `Particular · seña ${formatARS(sena)}`
+                        : 'Particular'}
                 </span>
               </button>
             ))}
@@ -135,9 +142,15 @@ function modalidades(servicio: ServicioConsultorio, prestacion: Prestacion) {
   };
 }
 
+/** El precio varía por profesional: acá va el más barato; el de cada uno se ve al elegir el horario. */
 function textoParticular(p: Prestacion): string {
   if (p.precioParticular === null) return '';
-  return p.sena > 0 ? `Particular ${formatARS(p.precioParticular)} · seña ${formatARS(p.sena)}` : `Particular ${formatARS(p.precioParticular)}`;
+  return `Particular desde ${formatARS(p.precioParticular)}`;
+}
+
+/** Precio y seña del horario elegido (los de su profesional); sin ellos (API vieja), los de la prestación. */
+function precioDelHueco(h: HuecoConsultorio, p: Prestacion): { precio: number | null; sena: number } {
+  return h.precio != null ? { precio: h.precio, sena: h.sena ?? 0 } : { precio: p.precioParticular, sena: p.sena };
 }
 
 const TITULOS = ['¿Qué servicio?', '¿Qué consulta?', '¿Cuándo?', 'Confirmar'];
@@ -157,6 +170,7 @@ function SacarCita({ servicios, version, onReservada }: { servicios: ServicioCon
   const servicio = servicios.find((s) => claveServicio(s) === clave);
   const prestacion = servicio?.prestaciones.find((p) => p.id === prestacionId);
   const mods = servicio && prestacion ? modalidades(servicio, prestacion) : null;
+  const elegido = hueco && prestacion ? precioDelHueco(hueco, prestacion) : null;
   const paso = !servicio
     ? 1
     : !prestacion || !mods || (!mods.incluida && !mods.particular)
@@ -360,11 +374,11 @@ function SacarCita({ servicios, version, onReservada }: { servicios: ServicioCon
               <span className="badge ok">Incluida en tu plan</span>
             </div>
           ) : (
-            prestacion.precioParticular !== null && (
+            elegido?.precio != null && (
               <div className="modal-wait">
-                Consulta particular de {formatARS(prestacion.precioParticular)}.
-                {prestacion.sena > 0
-                  ? ` Ahora pagás la seña de ${formatARS(prestacion.sena)} con Mercado Pago y el resto (${formatARS(prestacion.precioParticular - prestacion.sena)}) se lo pagás al profesional el día de la consulta. Te guardamos el horario 15 minutos. La seña no se devuelve: si cancelás la perdés; si cambiás el horario, la conservás.`
+                Consulta particular de {formatARS(elegido.precio)}.
+                {elegido.sena > 0
+                  ? ` Ahora pagás la seña de ${formatARS(elegido.sena)} con Mercado Pago y el resto (${formatARS(elegido.precio - elegido.sena)}) se lo pagás al profesional el día de la consulta. Te guardamos el horario 15 minutos. La seña no se devuelve: si cancelás la perdés; si cambiás el horario, la conservás.`
                   : ' Se la pagás al profesional el día de la consulta.'}
               </div>
             )
@@ -377,8 +391,8 @@ function SacarCita({ servicios, version, onReservada }: { servicios: ServicioCon
             <button className="btn-taupe" onClick={confirmar} disabled={busy}>
               {busy
                 ? 'Enviando…'
-                : hueco.modalidad === 'PARTICULAR' && prestacion.sena > 0
-                  ? `Pagar seña ${formatARS(prestacion.sena)}`
+                : hueco.modalidad === 'PARTICULAR' && elegido && elegido.sena > 0
+                  ? `Pagar seña ${formatARS(elegido.sena)}`
                   : 'Confirmar'}
             </button>
           </div>
