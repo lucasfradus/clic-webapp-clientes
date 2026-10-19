@@ -89,7 +89,10 @@ export interface ServicioConsultorio {
   sede: { id: number; nombre: string; direccion: string | null };
   horasCancelacion: number;
   diasReservaAnticipada: number;
-  /** precioParticular null: la prestación no se da en horarios particulares. sena: lo que se paga online. */
+  /**
+   * precioParticular: DESDE (el más barato de los profesionales; cada horario trae el suyo). null: no
+   * se da en horarios particulares. sena: la de ese precio, lo que se paga online.
+   */
   prestaciones: { id: number; nombre: string; descripcion: string | null; duracionMinutos: number; precioParticular: number | null; sena: number }[];
   /** Incluidas por mes según su plan (0 = solo particulares). */
   incluidasPorMes: number;
@@ -103,6 +106,9 @@ export interface HuecoConsultorio {
   fin: string;
   modalidad: 'INCLUIDA' | 'PARTICULAR';
   profesional: string;
+  /** Particular: precio de ese profesional y la seña (varían por profesional). */
+  precio?: number;
+  sena?: number;
 }
 
 export interface CitaConsultorio {
